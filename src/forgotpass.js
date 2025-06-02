@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const result = await window.__TAURI__.invoke("tauri_forgot_password", {
+      const result = await window.__TAURI__.core.invoke("tauri_forgot_password", {
         email: email
       });
       
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const result = await window.__TAURI__.invoke("reset_password", {
+      const result = await window.__TAURI__.core.invoke("reset_password", {
         email: email,
         token: token,
         newPassword: newPassword

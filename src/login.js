@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       // Call Tauri command instead of HTTP request
-      const result = await window.__TAURI__.invoke("tauri_login", {
+      const result = await window.__TAURI__.core.invoke("tauri_login", {
         payload: { email, password, role }
       });
 
