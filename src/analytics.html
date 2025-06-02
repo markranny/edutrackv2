@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <title>Student Analytics</title>
+  <link rel="stylesheet" href="analytics.css"/>
+</head>
+<body>
+  <div class="container">
+
+    <aside class="sidebar">
+      <div class="profile">
+        <img src="assets/student1.png" alt="Student" />
+        <h3>Student</h3>
+      </div>
+      <nav>
+        <a href="marking.html" class="nav-item">Markings</a>
+        <button class="progress-btn">Progress</button>
+      </nav>
+      <div class="logout">
+        <a href="logout.html" class="logout-btn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <h1>Analytics</h1>
+      <div class="content-box"></div>
+
+      <div class="pie-chart">
+        <div class="chart-wrapper">
+          <canvas id="studentChart"></canvas>
+        </div>
+      </div>
+      </div>
+    </main>
+
+  </div>
+
+ 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ 
+  <script src="analytics.js"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Profile - Edu Track</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background-color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        .sidebar button:hover,
+        .sidebar button.active {
+            background-color: #34495e;
+        }
+
+        .back-arrow-container {
+            position: absolute;
+            top: 10px;
+            left: 240px;
+        }
+
+        .back-arrow {
+            background-color: #3498db;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .content-container {
+            margin-left: 240px;
+            padding: 40px;
+            flex: 1;
+            background-color: #ecf0f1;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center; /* Center the box horizontally */
+        }
+
+        /* Reduced the box width to 50% */
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            max-width: 600px; /* Optional upper limit */
+        }
+
+        .profile-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2ecc71;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #ccc;
+            overflow: hidden;
+            margin: 0 auto 20px;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info-group {
+            margin-bottom: 20px;
+        }
+
+        .info-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .underline {
+            height: 2px;
+            background-color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .change-section h2 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 30px 0 10px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #aaa;
+            margin-bottom: 15px;
+        }
+
+        .change-btn {
+            background-color: #2ecc71;
+            color: white;
+            font-weight: bold;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+            .back-arrow-container {
+                margin-left: 10px;
+                margin-bottom: 5px;
+            }
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 10px;
+                gap: 10px;
+                margin-top: 40px;
+            }
+            .content-container {
+                padding: 10px;
+                margin-left: 0;
+            }
+            .container {
+                width: 100%;
+                padding: 20px;
+            }
+            .back-arrow {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button Above Sidebar -->
+    <div class="back-arrow-container">
+        <button onclick="goBack()" class="back-arrow">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
+
+    <div class="sidebar">
+        <button onclick="switchToAccount(this)" class="active">Account</button>
+        <button onclick="switchToStudentList(this)">Student List</button>
+        <button onclick="switchToClassSchedule(this)">Class Schedule</button>
+         <button onclick="switchToGradesSummary(this)">Grades Summary</button>   <!-- ← bagong button -->
+        <button onclick="switchToAbout(this)">About</button>
+    </div>
+
+    <div class="content-container">
+        <div class="container">
+            <div class="profile-title">Profile</div>
+            <div class="avatar">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
+            </div>
+            <div class="info-group">
+                <label>Username:</label>
+                <div class="underline"></div>
+                <label>Email:</label>
+                <div class="underline"></div>
+            </div>
+            <form id="changePasswordForm" class="change-section">
+                <h2>Change password:</h2>
+                <label>Current password:</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password" />
+                <label>New password:</label>
+                <input type="password" id="newPassword" placeholder="Enter new password" />
+                <label>Confirm new password:</label>
+                <input type="password" id="confirmPassword" placeholder="Re-enter new password" />
+                <button type="submit" class="change-btn">Change Account Password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = 'dash.html'; // Redirect to dash.html
+        }
+        function switchToAccount(button) {
+            window.location.href = 'profile.html'; // Profile page
+        }
+        function switchToStudentList(button) {
+            window.location.href = 'studentlist.html'; // Redirect to Student List
+        }
+        function switchToClassSchedule(button) {
+            window.location.href = 'classschedule.html'; // Redirect to Class Schedule
+        }
+        function switchToGradesSummary(button) {
+    window.location.href = 'grades_summary.html';   // redirect to the summary page
+}
+
+        function switchToAbout(button) {
+            window.location.href = 'abouts.html'; 
+        }
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            if (newPass !== confirm) {
+                alert("New passwords do not match!");
+                return;
+            }
+            alert("Password successfully changed!");
+            this.reset();
+        });
+    </script>
+</body>
+</html>

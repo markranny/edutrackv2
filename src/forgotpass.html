@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Forgot Password - Edu Track</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="login-box">
+    <h2>Forgot Password</h2>
+    <form id="requestTokenForm">
+      <input type="email" placeholder="Email" required />
+      <button type="submit">Request Reset Token</button>
+    </form>
+    <form id="resetPasswordForm" style="margin-top:30px;">
+      <input type="email" placeholder="Email" required />
+      <input name="reset_token" type="text" placeholder="Reset Token" required />
+      <input name="new_password" type="password" placeholder="New Password" required />
+      <input name="confirm_password" type="password" placeholder="Confirm Password" required />
+      <button type="submit">Reset Password</button>
+    </form>
+    <a href="login.html">Back to login</a>
+  </div>
+  <script src="forgotpass.js"></script>
+</body>
+</html>
