@@ -64,17 +64,16 @@
             background-color: #ecf0f1;
             min-height: 100vh;
             display: flex;
-            justify-content: center; /* Center the box horizontally */
+            justify-content: center;
         }
 
-        /* Reduced the box width to 50% */
         .container {
             background-color: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             width: 50%;
-            max-width: 600px; /* Optional upper limit */
+            max-width: 600px;
         }
 
         .profile-title {
@@ -108,18 +107,24 @@
             display: block;
             font-weight: bold;
             margin-bottom: 5px;
+            color: #2c3e50;
         }
 
-        .underline {
-            height: 2px;
-            background-color: #ccc;
+        .info-value {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
             margin-bottom: 10px;
+            color: #495057;
+            min-height: 20px;
         }
 
         .change-section h2 {
             font-size: 20px;
             font-weight: bold;
             margin: 30px 0 10px;
+            color: #2c3e50;
         }
 
         input[type="password"] {
@@ -128,6 +133,7 @@
             border-radius: 10px;
             border: 1px solid #aaa;
             margin-bottom: 15px;
+            box-sizing: border-box;
         }
 
         .change-btn {
@@ -138,6 +144,34 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .change-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .change-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 5px;
         }
 
         @media (max-width: 768px) {
@@ -173,7 +207,6 @@
     </style>
 </head>
 <body>
-    <!-- Back Button Above Sidebar -->
     <div class="back-arrow-container">
         <button onclick="goBack()" class="back-arrow">
             <i class="fas fa-arrow-left"></i>
@@ -184,7 +217,7 @@
         <button onclick="switchToAccount(this)" class="active">Account</button>
         <button onclick="switchToStudentList(this)">Student List</button>
         <button onclick="switchToClassSchedule(this)">Class Schedule</button>
-         <button onclick="switchToGradesSummary(this)">Grades Summary</button>   <!-- ← bagong button -->
+        <button onclick="switchToGradesSummary(this)">Grades Summary</button>
         <button onclick="switchToAbout(this)">About</button>
     </div>
 
@@ -194,56 +227,161 @@
             <div class="avatar">
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
             </div>
-            <div class="info-group">
-                <label>Username:</label>
-                <div class="underline"></div>
-                <label>Email:</label>
-                <div class="underline"></div>
+            
+            <div id="profileInfo" class="loading">Loading profile...</div>
+            
+            <div id="profileDetails" style="display: none;">
+                <div class="info-group">
+                    <label>First Name:</label>
+                    <div id="firstname" class="info-value"></div>
+                </div>
+                <div class="info-group">
+                    <label>Last Name:</label>
+                    <div id="lastname" class="info-value"></div>
+                </div>
+                <div class="info-group">
+                    <label>Email:</label>
+                    <div id="email" class="info-value"></div>
+                </div>
+                <div class="info-group">
+                    <label>Role:</label>
+                    <div id="role" class="info-value"></div>
+                </div>
+                
+                <form id="changePasswordForm" class="change-section">
+                    <h2>Change password:</h2>
+                    <label>Current password:</label>
+                    <input type="password" id="currentPassword" placeholder="Enter current password" required />
+                    <label>New password:</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password" required minlength="6" />
+                    <label>Confirm new password:</label>
+                    <input type="password" id="confirmPassword" placeholder="Re-enter new password" required />
+                    <div id="passwordMessage"></div>
+                    <button type="submit" class="change-btn" id="changePasswordBtn">Change Account Password</button>
+                </form>
             </div>
-            <form id="changePasswordForm" class="change-section">
-                <h2>Change password:</h2>
-                <label>Current password:</label>
-                <input type="password" id="currentPassword" placeholder="Enter current password" />
-                <label>New password:</label>
-                <input type="password" id="newPassword" placeholder="Enter new password" />
-                <label>Confirm new password:</label>
-                <input type="password" id="confirmPassword" placeholder="Re-enter new password" />
-                <button type="submit" class="change-btn">Change Account Password</button>
-            </form>
         </div>
     </div>
 
     <script>
+        let currentUserEmail = '';
+
+        // Navigation functions
         function goBack() {
-            window.location.href = 'dash.html'; // Redirect to dash.html
+            window.location.href = 'dash.html';
         }
         function switchToAccount(button) {
-            window.location.href = 'profile.html'; // Profile page
+            window.location.href = 'profile.html';
         }
         function switchToStudentList(button) {
-            window.location.href = 'studentlist.html'; // Redirect to Student List
+            window.location.href = 'studentlist.html';
         }
         function switchToClassSchedule(button) {
-            window.location.href = 'classschedule.html'; // Redirect to Class Schedule
+            window.location.href = 'classschedule.html';
         }
         function switchToGradesSummary(button) {
-    window.location.href = 'grades_summary.html';   // redirect to the summary page
-}
-
-        function switchToAbout(button) {
-            window.location.href = 'abouts.html'; 
+            window.location.href = 'grades_summary.html';
         }
-        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        function switchToAbout(button) {
+            window.location.href = 'abouts.html';
+        }
+
+        // Load user profile on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadUserProfile();
+        });
+
+        async function loadUserProfile() {
+            try {
+                // Get current user from sessionStorage
+                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                currentUserEmail = currentUser.email;
+
+                if (!currentUserEmail) {
+                    document.getElementById('profileInfo').innerHTML = '<div class="error">No user logged in. Please <a href="login.html">login</a>.</div>';
+                    return;
+                }
+
+                // Get user profile from backend
+                const profile = await window.__TAURI__.core.invoke("get_user_profile", {
+                    email: currentUserEmail
+                });
+
+                // Display profile information
+                document.getElementById('firstname').textContent = profile.firstname || 'Not provided';
+                document.getElementById('lastname').textContent = profile.lastname || 'Not provided';
+                document.getElementById('email').textContent = profile.email;
+                document.getElementById('role').textContent = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+
+                // Hide loading and show profile details
+                document.getElementById('profileInfo').style.display = 'none';
+                document.getElementById('profileDetails').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                document.getElementById('profileInfo').innerHTML = '<div class="error">Error loading profile: ' + error + '</div>';
+            }
+        }
+
+        // Handle password change form
+        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const current = document.getElementById('currentPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
-            if (newPass !== confirm) {
-                alert("New passwords do not match!");
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('passwordMessage');
+            const submitBtn = document.getElementById('changePasswordBtn');
+
+            // Clear previous messages
+            messageDiv.innerHTML = '';
+
+            // Validate inputs
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                messageDiv.innerHTML = '<div class="error">All fields are required.</div>';
                 return;
             }
-            alert("Password successfully changed!");
-            this.reset();
+
+            if (newPassword !== confirmPassword) {
+                messageDiv.innerHTML = '<div class="error">New passwords do not match!</div>';
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                messageDiv.innerHTML = '<div class="error">New password must be at least 6 characters long.</div>';
+                return;
+            }
+
+            if (currentPassword === newPassword) {
+                messageDiv.innerHTML = '<div class="error">New password must be different from current password.</div>';
+                return;
+            }
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Changing Password...';
+
+            try {
+                // Call backend to change password
+                const result = await window.__TAURI__.core.invoke("change_password", {
+                    payload: {
+                        email: currentUserEmail,
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    }
+                });
+
+                messageDiv.innerHTML = '<div class="success">' + result + '</div>';
+                this.reset(); // Clear the form
+
+            } catch (error) {
+                console.error('Password change error:', error);
+                messageDiv.innerHTML = '<div class="error">Error: ' + error + '</div>';
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Change Account Password';
+            }
         });
     </script>
 </body>

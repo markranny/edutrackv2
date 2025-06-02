@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (result.success) {
         alert(`✅ Welcome!`);
-        // Store user info in sessionStorage
+        // Store complete user info in sessionStorage
         sessionStorage.setItem("currentUser", JSON.stringify(result.user));
         
         // Redirect based on role
