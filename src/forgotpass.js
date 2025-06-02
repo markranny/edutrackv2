@@ -1,28 +1,65 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const forgotForm = document.getElementById("forgotForm");
+  const requestTokenForm = document.getElementById("requestTokenForm");
+  const resetPasswordForm = document.getElementById("resetPasswordForm");
 
-  forgotForm.addEventListener("submit", async function (e) {
+  // Request reset token
+  requestTokenForm.addEventListener("submit", async function (e) {
     e.preventDefault();
-    const email = document.getElementById("email").value.trim();
+    const email = e.target.querySelector('input[type="email"]').value.trim();
 
     if (!email) {
       alert("❌ Please enter your email.");
       return;
     }
 
-    const response = await fetch("/api/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
+    try {
+      const result = await window.__TAURI__.invoke("tauri_forgot_password", {
+        email: email
+      });
+      
+      alert("✅ " + result);
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      alert("⚠️ " + error);
+    }
+  });
 
-    const result = await response.json();
+  // Reset password with token
+  resetPasswordForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    
+    const email = e.target.querySelector('input[type="email"]').value.trim();
+    const token = e.target.querySelector('input[name="reset_token"]').value.trim();
+    const newPassword = e.target.querySelector('input[name="new_password"]').value.trim();
+    const confirmPassword = e.target.querySelector('input[name="confirm_password"]').value.trim();
 
-    if (response.ok) {
-      // For offline mode, show the token directly (no email)
-      alert("✅ Reset token: " + result.token + "\nUse this token to reset your password.");
-    } else {
-      alert("⚠️ " + (result.error || "Forgot password failed"));
+    if (!email || !token || !newPassword || !confirmPassword) {
+      alert("❌ Please fill in all fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("❌ Passwords do not match.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert("❌ Password must be at least 6 characters long.");
+      return;
+    }
+
+    try {
+      const result = await window.__TAURI__.invoke("reset_password", {
+        email: email,
+        token: token,
+        newPassword: newPassword
+      });
+      
+      alert("✅ " + result);
+      window.location.href = "login.html";
+    } catch (error) {
+      console.error("Reset password error:", error);
+      alert("⚠️ " + error);
     }
   });
 });

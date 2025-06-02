@@ -20,18 +20,28 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const response = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstname, lastname, email, password, role })
-    });
-    const result = await response.json();
+    if (password.length < 6) {
+      alert("❌ Password must be at least 6 characters long.");
+      return;
+    }
 
-    if (response.ok) {
-      alert("✅ Registration successful!");
+    try {
+      // Call Tauri command instead of HTTP request
+      const result = await window.__TAURI__.invoke("tauri_register", {
+        payload: { 
+          firstname, 
+          lastname, 
+          email, 
+          password, 
+          role 
+        }
+      });
+
+      alert("✅ " + result);
       window.location.href = "login.html";
-    } else {
-      alert("⚠️ " + (result.error || "Signup failed"));
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("⚠️ " + error);
     }
   });
 });
