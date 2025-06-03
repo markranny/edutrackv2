@@ -70,10 +70,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
-    #gradingSelect:active {
-      transform: scale(0.95);
-    }
-
     .main-content {
       flex-grow: 1;
       padding: 30px;
@@ -81,32 +77,18 @@
       max-height: 100vh;
     }
 
-    #subjectSelect {
-      appearance: none;
-      background: #3498db;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      font: 14px Arial, sans-serif;
-      cursor: pointer;
-      margin-right: 8px;
-      transition: background 0.3s, transform 0.2s;
-    }
-
-    #subjectSelect:hover {
-      background: #2579b8;
-      transform: scale(1.05);
-    }
-
-    #subjectSelect:active {
-      transform: scale(0.95);
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .tabs {
       display: flex;
       gap: 20px;
-      margin-bottom: 20px;
     }
 
     .tab {
@@ -131,7 +113,31 @@
       transform: translateY(-2px) scale(1.06);
     }
 
-    .batch-upload-btn {
+    .subject-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #subjectSelect {
+      appearance: none;
+      background: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font: 14px Arial, sans-serif;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    #subjectSelect:hover {
+      background: #2579b8;
+      transform: scale(1.05);
+    }
+
+    .btn {
       background: #3498db;
       color: #fff;
       border: none;
@@ -140,15 +146,30 @@
       font: 600 14px Arial;
       cursor: pointer;
       transition: background 0.3s, transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    .batch-upload-btn:hover {
+    .btn:hover {
       background: #2579b8;
       transform: scale(1.05);
     }
 
-    .batch-upload-btn:active {
-      transform: scale(0.95);
+    .btn.success {
+      background: #27ae60;
+    }
+
+    .btn.success:hover {
+      background: #219a52;
+    }
+
+    .btn.warning {
+      background: #f39c12;
+    }
+
+    .btn.warning:hover {
+      background: #e67e22;
     }
 
     table {
@@ -156,6 +177,10 @@
       width: 100%;
       margin-top: 10px;
       font-size: 11px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     th, td {
@@ -166,6 +191,10 @@
 
     thead th {
       background: #f0f0f0;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .written-works-header {
@@ -188,7 +217,7 @@
     }
 
     .gray-bg {
-      background: #e0e0e0;
+      background: #9df89d;
     }
 
     .calculated {
@@ -201,6 +230,11 @@
 
     td[contenteditable] {
       background: #fff;
+      cursor: text;
+    }
+
+    td[contenteditable]:hover {
+      background: #f0f8ff;
     }
 
     .student-name-cell {
@@ -216,11 +250,6 @@
       padding: 2px;
     }
 
-    .gray-bg {
-      background: #9df89d;
-    }
-
-    /* Logout Button */
     .logout {
       margin-top: auto;
       padding-top: 30px;
@@ -248,12 +277,117 @@
       color: #960f0f;
     }
 
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+
+    .close-btn {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #aaa;
+    }
+
+    .close-btn:hover {
+      color: #000;
+    }
+
+    .status-message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .status-message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status-message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .template-info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 10px 0;
+      border-left: 4px solid #2196f3;
+    }
+
+    .template-info h4 {
+      margin-bottom: 10px;
+      color: #1976d2;
+    }
+
+    .template-info ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .template-info li {
+      margin: 5px 0;
+    }
+
+    @media (max-width: 768px) {
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .tabs {
+        justify-content: center;
+      }
+      
+      .subject-controls {
+        justify-content: center;
+      }
+      
+      table {
+        font-size: 10px;
+      }
+      
+      th, td {
+        padding: 2px;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="sidebar">
-    <div class="profile-img" id="profileIcon"><img src="assets/profile.jpg" alt="Profile"></div>
+    <div class="profile-img" id="profileIcon">
+      <img src="assets/profile.jpg" alt="Profile">
+    </div>
     <div class="profile-name">Teacher</div>
 
     <select id="gradingSelect">
@@ -271,16 +405,38 @@
   </div>
 
   <div class="main-content">
-    <div style="text-align:right;margin-bottom:10px">
-      <input type="file" id="fileInput" accept=".xlsx" style="display:none">
-      <select id="subjectSelect" hidden></select>
-      <button class="batch-upload-btn" onclick="document.getElementById('fileInput').click()">📁 Upload</button>
+    <div class="toolbar">
+      <div class="tabs">
+        <a href="dash.html" class="tab">Attendance</a>
+        <a href="grades_performance.html" class="tab active">Grades &amp; Performance</a>
+      </div>
+
+      <div class="subject-controls">
+        <select id="subjectSelect" hidden>
+          <option value="">Select Subject</option>
+        </select>
+        
+        <button class="btn warning" onclick="downloadTemplate()">
+          <i class="fas fa-download"></i> Download Template
+        </button>
+        
+        <button class="btn" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-upload"></i> Import Data
+        </button>
+        
+        <button class="btn success" onclick="exportGrades()">
+          <i class="fas fa-file-excel"></i> Export Grades
+        </button>
+        
+        <button class="btn" onclick="showImportHelp()">
+          <i class="fas fa-question-circle"></i> Help
+        </button>
+      </div>
     </div>
 
-    <div class="tabs">
-      <a href="dash.html" class="tab">Attendance</a>
-      <a href="grades_performance.html" class="tab active">Grades &amp; Performance</a>
-    </div>
+    <div id="statusMessage" class="status-message"></div>
+
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" multiple>
 
     <table>
       <thead>
@@ -310,12 +466,465 @@
     </table>
   </div>
 
-  <script>
-    document.getElementById('profileIcon').onclick = () => location.href = 'profile.html';
+  <!-- Import Help Modal -->
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('helpModal')">&times;</span>
+      <h3><i class="fas fa-info-circle"></i> Import & Export Guide</h3>
+      
+      <div class="template-info">
+        <h4>📋 Template Information</h4>
+        <p>Download the Excel template to see the correct format for importing student grades.</p>
+        <ul>
+          <li><strong>Column A:</strong> Student names (required)</li>
+          <li><strong>Columns B-E:</strong> Written Works scores (1-5 points each)</li>
+          <li><strong>Columns I-L:</strong> Performance Tasks scores (1-5 points each)</li>
+          <li><strong>Column P:</strong> Quarterly Assessment score (0-30 points)</li>
+        </ul>
+      </div>
 
+      <div class="template-info">
+        <h4>📤 Import Instructions</h4>
+        <ol>
+          <li>Download the template first to understand the format</li>
+          <li>Fill in student names and scores in the template</li>
+          <li>Save as Excel (.xlsx) or CSV file</li>
+          <li>Use the Import Data button to upload your file</li>
+          <li>Select the correct subject before importing</li>
+        </ol>
+      </div>
+
+      <div class="template-info">
+        <h4>📊 Export Features</h4>
+        <ul>
+          <li>Export current quarter grades for selected subject</li>
+          <li>Includes all student data and calculated grades</li>
+          <li>Compatible with Excel and other spreadsheet programs</li>
+          <li>Automatically includes date and subject in filename</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentSubject = '';
+    let currentQuarter = '1st';
+
+    // Initialize application
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('profileIcon').onclick = () => location.href = 'profile.html';
+      document.getElementById('gradingSelect').onchange = loadGradesFromLocal;
+      document.getElementById('fileInput').onchange = handleFileImport;
+      
+      initSubjectDropdown();
+      initializeTable();
+      setupEventListeners();
+    });
+
+    // Utility functions
     const getCurrentSubject = () => document.getElementById('subjectSelect').value || 'Unknown';
     const getCurrentQuarter = () => document.getElementById('gradingSelect').value;
     const storageKey = () => `grades-${getCurrentSubject()}-${getCurrentQuarter()}`;
+    const num = v => isNaN(parseFloat(v)) ? 0 : +parseFloat(v);
+
+    function showMessage(message, type = 'success') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = `status-message ${type}`;
+      statusDiv.style.display = 'block';
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    function showModal(modalId) {
+      document.getElementById(modalId).style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    function showImportHelp() {
+      showModal('helpModal');
+    }
+
+    // Template download function
+    function downloadTemplate() {
+      const workbook = XLSX.utils.book_new();
+      
+      // Create template data
+      const templateData = [
+        // Header rows
+        ['STUDENTS', 'WRITTEN WORKS (30%)', '', '', '', '', '', '', 'PERFORMANCE TASKS (50%)', '', '', '', '', '', '', 'QUARTERLY ASSESSMENT (20%)', '', '', 'INITIAL GRADE', 'QUARTERLY GRADE'],
+        ['NAME', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', 'SCORE', 'PS', 'WA', '100', '100'],
+        ['', '5', '5', '5', '5', '20', '100', '30', '5', '5', '5', '5', '20', '100', '50', '30', '100', '20', '100', '100'],
+        
+        // Sample data rows without formulas
+        ['Student Name 1', '4', '5', '3', '4', '16', '80', '24', '5', '4', '5', '5', '19', '95', '47.5', '25', '83.33', '16.67', '88.17', '88.17'],
+        ['Student Name 2', '5', '4', '5', '4', '18', '90', '27', '4', '5', '4', '5', '18', '90', '45', '28', '93.33', '18.67', '90.67', '90.67'],
+        ['Student Name 3', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+      ];
+
+      // Add more empty rows for additional students
+      for (let i = 7; i <= 35; i++) {
+        templateData.push([
+          ``, // Student name placeholder
+          '', '', '', '', // WW scores
+          '', '', '', // WW calculations
+          '', '', '', '', // PT scores
+          '', '', '', // PT calculations
+          '', // QA score
+          '', '', // QA calculations
+          '', '' // Final grades
+        ]);
+      }
+
+      const worksheet = XLSX.utils.aoa_to_sheet(templateData);
+      
+      // Set column widths
+      worksheet['!cols'] = [
+        {wch: 20}, // Student name
+        {wch: 8}, {wch: 8}, {wch: 8}, {wch: 8}, // WW 1-4
+        {wch: 10}, {wch: 8}, {wch: 8}, // WW totals
+        {wch: 8}, {wch: 8}, {wch: 8}, {wch: 8}, // PT 1-4
+        {wch: 10}, {wch: 8}, {wch: 8}, // PT totals
+        {wch: 10}, {wch: 8}, {wch: 8}, // QA
+        {wch: 10}, {wch: 10} // Final grades
+      ];
+
+      // Merge header cells
+      worksheet['!merges'] = [
+        {s: {r: 0, c: 1}, e: {r: 0, c: 7}}, // Written Works header
+        {s: {r: 0, c: 8}, e: {r: 0, c: 14}}, // Performance Tasks header
+        {s: {r: 0, c: 15}, e: {r: 0, c: 17}}, // Quarterly Assessment header
+        {s: {r: 0, c: 0}, e: {r: 1, c: 0}}, // Students header
+        {s: {r: 0, c: 18}, e: {r: 1, c: 18}}, // Initial Grade header
+        {s: {r: 0, c: 19}, e: {r: 1, c: 19}} // Quarterly Grade header
+      ];
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Grades Template');
+      
+      // Add instructions sheet
+      const instructionsData = [
+        ['EduTrack Grades Template - Instructions'],
+        [''],
+        ['How to use this template:'],
+        ['1. Fill in student names in column A (starting from row 4)'],
+        ['2. Enter Written Works scores (1-5 points) in columns B-E'],
+        ['3. Enter Performance Tasks scores (1-5 points) in columns I-L'],
+        ['4. Enter Quarterly Assessment scores (0-30 points) in column P'],
+        ['5. Calculate totals manually or use your preferred method'],
+        ['6. Save the file and import it into EduTrack'],
+        [''],
+        ['Important Notes:'],
+        ['- Do not modify the header rows (rows 1-3)'],
+        ['- All calculated fields are now empty for manual entry'],
+        ['- Student names must be unique'],
+        ['- Leave cells empty if no score is available'],
+        ['- Scores must be within the specified ranges'],
+        [''],
+        ['Calculation Guide:'],
+        ['- Written Works Total: Sum of columns B-E'],
+        ['- Written Works PS: (Total / 20) * 100'],
+        ['- Written Works WA: PS * 0.3'],
+        ['- Performance Tasks Total: Sum of columns I-L'],
+        ['- Performance Tasks PS: (Total / 20) * 100'],
+        ['- Performance Tasks WA: PS * 0.5'],
+        ['- Quarterly Assessment PS: (Score / 30) * 100'],
+        ['- Quarterly Assessment WA: PS * 0.2'],
+        ['- Initial Grade: WW WA + PT WA + QA WA'],
+        ['- Quarterly Grade: Same as Initial Grade'],
+        [''],
+        ['Column Guide:'],
+        ['A: Student Names'],
+        ['B-E: Written Works (1-5 points each)'],
+        ['F-H: Written Works calculations (manual entry)'],
+        ['I-L: Performance Tasks (1-5 points each)'],
+        ['M-O: Performance Tasks calculations (manual entry)'],
+        ['P: Quarterly Assessment (0-30 points)'],
+        ['Q-R: Quarterly Assessment calculations (manual entry)'],
+        ['S-T: Final grades (manual entry)']
+      ];
+
+      const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData);
+      instructionsSheet['!cols'] = [{wch: 60}];
+      XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Instructions');
+
+      // Generate filename with current date and subject
+      const date = new Date().toISOString().split('T')[0];
+      const subject = getCurrentSubject();
+      const quarter = getCurrentQuarter();
+      const filename = `EduTrack_Template_${subject}_${quarter}Q_${date}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+      showMessage('Template downloaded successfully without formulas! Check your Downloads folder.', 'success');
+    }
+
+    // Enhanced import function
+    function handleFileImport(event) {
+      const files = event.target.files;
+      if (!files.length) return;
+
+      const currentSubject = getCurrentSubject();
+      if (!currentSubject || currentSubject === 'Unknown') {
+        showMessage('Please select a subject before importing data.', 'error');
+        return;
+      }
+
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          try {
+            let data;
+            const fileName = file.name.toLowerCase();
+            
+            if (fileName.endsWith('.csv')) {
+              // Handle CSV files
+              const text = e.target.result;
+              const lines = text.split('\n').map(line => line.split(','));
+              data = lines.filter(line => line.some(cell => cell.trim()));
+            } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+              // Handle Excel files
+              const workbook = XLSX.read(e.target.result, {type: 'array'});
+              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+              data = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+            } else {
+              showMessage('Unsupported file format. Please use .xlsx, .xls, or .csv files.', 'error');
+              return;
+            }
+
+            importGradesData(data, file.name);
+          } catch (error) {
+            console.error('Import error:', error);
+            showMessage(`Error importing ${file.name}: ${error.message}`, 'error');
+          }
+        };
+
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsArrayBuffer(file);
+        }
+      });
+
+      // Reset file input
+      event.target.value = '';
+    }
+
+    function importGradesData(data, fileName) {
+      if (!data || data.length < 4) {
+        showMessage(`Invalid file format in ${fileName}. Please use the provided template.`, 'error');
+        return;
+      }
+
+      // Find the data start row (skip headers)
+      let dataStartRow = 3; // Default to row 4 (index 3)
+      for (let i = 0; i < Math.min(10, data.length); i++) {
+        if (data[i] && data[i][0] && 
+            !data[i][0].toString().toLowerCase().includes('student') &&
+            !data[i][0].toString().toLowerCase().includes('name') &&
+            data[i][0].toString().trim() !== '') {
+          dataStartRow = i;
+          break;
+        }
+      }
+
+      let importedCount = 0;
+      const rows = [...document.getElementById('student-data').querySelectorAll('tr:not(.section-title)')];
+      
+      // Clear existing data
+      rows.forEach(row => {
+        const dropdown = row.querySelector('.student-dropdown');
+        if (dropdown) dropdown.value = '';
+        [...row.children].forEach((td, i) => {
+          if (i !== 0) td.textContent = '';
+        });
+      });
+
+      // Import new data
+      for (let i = dataStartRow; i < data.length && importedCount < rows.length; i++) {
+        const rowData = data[i];
+        if (!rowData || !rowData[0] || rowData[0].toString().trim() === '') continue;
+
+        const studentName = rowData[0].toString().trim();
+        const row = rows[importedCount];
+        
+        if (row) {
+          // Set student name
+          const dropdown = row.querySelector('.student-dropdown');
+          if (dropdown) {
+            // Add student to dropdown if not exists
+            if (![...dropdown.options].some(opt => opt.value === studentName)) {
+              const option = document.createElement('option');
+              option.value = studentName;
+              option.textContent = studentName;
+              dropdown.appendChild(option);
+              
+              // Also add to students list
+              const students = JSON.parse(localStorage.getItem('students') || '[]');
+              if (!students.find(s => s.name === studentName)) {
+                students.push({name: studentName});
+                localStorage.setItem('students', JSON.stringify(students));
+              }
+            }
+            dropdown.value = studentName;
+          }
+
+          // Import scores (columns 1-4 for WW, 8-11 for PT, 15 for QA)
+          const cells = [...row.children];
+          
+          // Written Works (columns B-E in Excel, indices 1-4)
+          for (let j = 1; j <= 4; j++) {
+            if (rowData[j] && cells[j]) {
+              cells[j].textContent = parseFloat(rowData[j]) || '';
+            }
+          }
+          
+          // Performance Tasks (columns I-L in Excel, indices 8-11)
+          for (let j = 8; j <= 11; j++) {
+            if (rowData[j] && cells[j]) {
+              cells[j].textContent = parseFloat(rowData[j]) || '';
+            }
+          }
+          
+          // Quarterly Assessment (column P in Excel, index 15)
+          if (rowData[15] && cells[15]) {
+            cells[15].textContent = parseFloat(rowData[15]) || '';
+          }
+
+          recalcRow(row);
+          importedCount++;
+        }
+      }
+
+      saveGradesToLocal();
+      showMessage(`Successfully imported ${importedCount} student records from ${fileName}`, 'success');
+    }
+
+    // Export function
+    function exportGrades() {
+      const subject = getCurrentSubject();
+      const quarter = getCurrentQuarter();
+      
+      if (!subject || subject === 'Unknown') {
+        showMessage('Please select a subject before exporting data.', 'error');
+        return;
+      }
+
+      const workbook = XLSX.utils.book_new();
+      const rows = [...document.getElementById('student-data').querySelectorAll('tr:not(.section-title)')];
+      
+      // Prepare export data
+      const exportData = [
+        // Header rows
+        ['STUDENTS', 'WRITTEN WORKS (30%)', '', '', '', '', '', '', 'PERFORMANCE TASKS (50%)', '', '', '', '', '', '', 'QUARTERLY ASSESSMENT (20%)', '', '', 'INITIAL GRADE', 'QUARTERLY GRADE'],
+        ['NAME', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', 'SCORE', 'PS', 'WA', '100', '100'],
+        ['', '5', '5', '5', '5', '20', '100', '30', '5', '5', '5', '5', '20', '100', '50', '30', '100', '20', '100', '100']
+      ];
+
+      // Add student data
+      rows.forEach(row => {
+        const cells = [...row.children];
+        const dropdown = row.querySelector('.student-dropdown');
+        const studentName = dropdown ? dropdown.value : '';
+        
+        if (studentName) {
+          const rowData = [studentName];
+          // Add all cell values (skip first cell since it's the name)
+          for (let i = 1; i < cells.length; i++) {
+            rowData.push(cells[i].textContent || '');
+          }
+          exportData.push(rowData);
+        }
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet(exportData);
+      
+      // Set column widths
+      worksheet['!cols'] = [
+        {wch: 20}, // Student name
+        {wch: 8}, {wch: 8}, {wch: 8}, {wch: 8}, // WW 1-4
+        {wch: 10}, {wch: 8}, {wch: 8}, // WW totals
+        {wch: 8}, {wch: 8}, {wch: 8}, {wch: 8}, // PT 1-4
+        {wch: 10}, {wch: 8}, {wch: 8}, // PT totals
+        {wch: 10}, {wch: 8}, {wch: 8}, // QA
+        {wch: 10}, {wch: 10} // Final grades
+      ];
+
+      // Merge header cells
+      worksheet['!merges'] = [
+        {s: {r: 0, c: 1}, e: {r: 0, c: 7}}, // Written Works header
+        {s: {r: 0, c: 8}, e: {r: 0, c: 14}}, // Performance Tasks header
+        {s: {r: 0, c: 15}, e: {r: 0, c: 17}}, // Quarterly Assessment header
+        {s: {r: 0, c: 0}, e: {r: 1, c: 0}}, // Students header
+        {s: {r: 0, c: 18}, e: {r: 1, c: 18}}, // Initial Grade header
+        {s: {r: 0, c: 19}, e: {r: 1, c: 19}} // Quarterly Grade header
+      ];
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, `${subject}_${quarter}Q`);
+
+      // Create summary sheet
+      const summaryData = [
+        [`${subject} - ${quarter} Quarter Summary`],
+        [''],
+        ['Student Name', 'Final Grade', 'Remarks'],
+        ['', '', '']
+      ];
+
+      const studentsWithGrades = [];
+      rows.forEach(row => {
+        const dropdown = row.querySelector('.student-dropdown');
+        const studentName = dropdown ? dropdown.value : '';
+        const finalGradeCell = row.querySelector('.final-grade');
+        const finalGrade = finalGradeCell ? parseFloat(finalGradeCell.textContent) || 0 : 0;
+        
+        if (studentName && finalGrade > 0) {
+          let remarks = '';
+          if (finalGrade >= 90) remarks = 'Outstanding';
+          else if (finalGrade >= 85) remarks = 'Very Satisfactory';
+          else if (finalGrade >= 80) remarks = 'Satisfactory';
+          else if (finalGrade >= 75) remarks = 'Fairly Satisfactory';
+          else remarks = 'Did Not Meet Expectations';
+          
+          summaryData.push([studentName, finalGrade.toFixed(2), remarks]);
+          studentsWithGrades.push(finalGrade);
+        }
+      });
+
+      // Add class statistics
+      if (studentsWithGrades.length > 0) {
+        const average = studentsWithGrades.reduce((a, b) => a + b, 0) / studentsWithGrades.length;
+        const highest = Math.max(...studentsWithGrades);
+        const lowest = Math.min(...studentsWithGrades);
+        const passed = studentsWithGrades.filter(grade => grade >= 75).length;
+        const failed = studentsWithGrades.length - passed;
+
+        summaryData.push(
+          [''],
+          ['Class Statistics'],
+          ['Class Average', average.toFixed(2), ''],
+          ['Highest Grade', highest.toFixed(2), ''],
+          ['Lowest Grade', lowest.toFixed(2), ''],
+          ['Students Passed', passed, ''],
+          ['Students Failed', failed, ''],
+          ['Passing Rate', `${((passed / studentsWithGrades.length) * 100).toFixed(1)}%`, '']
+        );
+      }
+
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      summarySheet['!cols'] = [{wch: 25}, {wch: 15}, {wch: 20}];
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+      // Generate filename
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `EduTrack_Grades_${subject}_${quarter}Q_${date}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+      showMessage(`Grades exported successfully as ${filename}`, 'success');
+    }
 
     // Get all students from localStorage
     function getAllStudents() {
@@ -337,13 +946,19 @@
     function initSubjectDropdown() {
       const select = document.getElementById('subjectSelect');
       const scheduleRaw = localStorage.getItem('schedule');
-      if (!scheduleRaw) return;
+      if (!scheduleRaw) {
+        showMessage('No subjects found. Please create a class schedule first.', 'error');
+        return;
+      }
 
       const subjects = [...new Set(JSON.parse(scheduleRaw)
                           .map(s => s.subject)
                           .filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
-      if (!subjects.length) return;
+      if (!subjects.length) {
+        showMessage('No subjects found in schedule. Please add subjects to your schedule.', 'error');
+        return;
+      }
 
       select.innerHTML = '';
       subjects.forEach((sub, i) => {
@@ -356,10 +971,22 @@
 
       select.hidden = false;
       select.onchange = loadGradesFromLocal;
+      currentSubject = subjects[0];
       loadGradesFromLocal();
     }
 
-    const studentDataBody = document.getElementById('student-data');
+    function initializeTable() {
+      const studentDataBody = document.getElementById('student-data');
+      const header = studentDataBody.querySelector('.section-title');
+      
+      // Clear existing rows except header
+      [...studentDataBody.querySelectorAll('tr:not(.section-title)')].forEach(r => r.remove());
+      
+      // Create 30 empty rows
+      for (let i = 0; i < 30; i++) {
+        header.after(createStudentRow());
+      }
+    }
 
     function createStudentRow() {
       const tr = document.createElement('tr');
@@ -426,25 +1053,29 @@
         <td class="calculated qa-ps">0.00</td>
         <td class="calculated qa-wa">0.00</td>
         <td class="calculated initial-grade">0.00</td>
-        <td class="calculated final-grade">#N/A</td>
+        <td class="calculated final-grade">0.00</td>
       `;
       return tr;
     }
 
-    // Clear existing rows and create new ones
-    [...studentDataBody.querySelectorAll('tr:not(.section-title)')].forEach(r => r.remove());
-    const header = studentDataBody.querySelector('.section-title');
-    for (let i = 0; i < 30; i++) header.after(createStudentRow());
-
-    const num = v => isNaN(parseFloat(v)) ? 0 : +parseFloat(v);
+    function setupEventListeners() {
+      const studentDataBody = document.getElementById('student-data');
+      
+      studentDataBody.addEventListener('input', e => {
+        if (!e.target.isContentEditable) return;
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+        recalcRow(tr);
+        saveGradesToLocal();
+      });
+    }
 
     function saveGradesToLocal() {
-      const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+      const rows = [...document.getElementById('student-data').querySelectorAll('tr:not(.section-title)')];
       const data = rows.map(r => {
         const cells = [...r.children];
         return cells.map((c, index) => {
           if (index === 0) {
-            // For the first cell (student name), get the dropdown value
             const dropdown = c.querySelector('select');
             return dropdown ? dropdown.value : '';
           }
@@ -460,11 +1091,9 @@
       const subject = getCurrentSubject();
       const quarter = getCurrentQuarter();
       
-      // Get the final grade from the row
       const finalGradeCell = row.querySelector('.final-grade');
       const finalGrade = parseFloat(finalGradeCell.textContent) || 0;
       
-      // Save to student's individual grades storage
       const studentGradesKey = `student_grades_${studentName}`;
       let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
       
@@ -477,8 +1106,9 @@
     }
 
     function loadGradesFromLocal() {
+      currentQuarter = getCurrentQuarter();
       const stored = localStorage.getItem(storageKey());
-      const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+      const rows = [...document.getElementById('student-data').querySelectorAll('tr:not(.section-title)')];
 
       // Reset all rows
       rows.forEach(r => {
@@ -500,11 +1130,9 @@
         
         rowData.forEach((text, j) => {
           if (j === 0) {
-            // Set dropdown value for student name
             const dropdown = row.querySelector('.student-dropdown');
             if (dropdown) {
               dropdown.value = text;
-              // Refresh dropdown options
               refreshDropdownOptions(dropdown);
             }
           } else if (row.children[j]) {
@@ -520,12 +1148,10 @@
       const currentValue = dropdown.value;
       const allStudents = getAllStudents();
       
-      // Clear existing options except the first one
       while (dropdown.children.length > 1) {
         dropdown.removeChild(dropdown.lastChild);
       }
       
-      // Add updated student options
       allStudents.forEach(student => {
         const option = document.createElement('option');
         option.value = student.name;
@@ -540,83 +1166,41 @@
       const ww = [...row.querySelectorAll('[data-ww]')].map(td => num(td.textContent));
       const wwT = ww.reduce((a, b) => a + b, 0);
       row.querySelector('.ww-total').textContent = wwT.toFixed(2);
-      row.querySelector('.ww-ps').textContent   = (wwT * 5).toFixed(2);
-      row.querySelector('.ww-wa').textContent   = (wwT * 1.5).toFixed(2);
+      row.querySelector('.ww-ps').textContent = (wwT * 5).toFixed(2);
+      row.querySelector('.ww-wa').textContent = (wwT * 1.5).toFixed(2);
 
       const pt = [...row.querySelectorAll('[data-pt]')].map(td => num(td.textContent));
       const ptT = pt.reduce((a, b) => a + b, 0);
       row.querySelector('.pt-total').textContent = ptT.toFixed(2);
-      row.querySelector('.pt-ps').textContent   = (ptT * 5).toFixed(2);
-      row.querySelector('.pt-wa').textContent   = (ptT * 2.5).toFixed(2);
+      row.querySelector('.pt-ps').textContent = (ptT * 5).toFixed(2);
+      row.querySelector('.pt-wa').textContent = (ptT * 2.5).toFixed(2);
 
       const qa = num(row.querySelector('[data-qa="score"]').textContent || 0);
       const QA_PS_FACTOR = 100 / 30;
-      const QA_WA_FACTOR =  20 / 30;
+      const QA_WA_FACTOR = 20 / 30;
 
       row.querySelector('.qa-ps').textContent = (qa * QA_PS_FACTOR).toFixed(2);
       row.querySelector('.qa-wa').textContent = (qa * QA_WA_FACTOR).toFixed(2);
 
       const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR);
       row.querySelector('.initial-grade').textContent = initial.toFixed(2);
-      row.querySelector('.final-grade').textContent   = initial >= 0 ? initial.toFixed(2) : '#N/A';
+      row.querySelector('.final-grade').textContent = initial >= 0 ? initial.toFixed(2) : '0.00';
       
-      // Save student grades when recalculating
       const dropdown = row.querySelector('.student-dropdown');
       if (dropdown && dropdown.value) {
         saveStudentGrades(dropdown.value, row);
       }
     }
 
-    studentDataBody.addEventListener('input', e => {
-      if (!e.target.isContentEditable) return;
-      const tr = e.target.closest('tr');
-      if (!tr) return;
-      recalcRow(tr);
-      saveGradesToLocal();
-    });
-
-    function updateStudentNamesAcrossSubjects(names) {
-      // This function is kept for compatibility but names are now handled via dropdown
-      const scheduleRaw = localStorage.getItem('schedule');
-      if (!scheduleRaw) return;
-      const subjects = [...new Set(JSON.parse(scheduleRaw).map(s => s.subject).filter(Boolean))];
-
-      // Refresh all dropdowns
-      const dropdowns = document.querySelectorAll('.student-dropdown');
-      dropdowns.forEach(refreshDropdownOptions);
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modals = document.querySelectorAll('.modal');
+      modals.forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
     }
-
-    document.getElementById('fileInput').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = evt => {
-        const wb = XLSX.read(evt.target.result, { type: 'binary' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-        if (!data.length) return;
-
-        const names = data.slice(1).map(row => (row.length > 0 ? row[0] : ''));
-        
-        // Add names to students list
-        const existingStudents = JSON.parse(localStorage.getItem('students') || '[]');
-        names.forEach(name => {
-          if (name && !existingStudents.find(s => s.name === name)) {
-            existingStudents.push({ name });
-          }
-        });
-        localStorage.setItem('students', JSON.stringify(existingStudents));
-
-        updateStudentNamesAcrossSubjects(names);
-        loadGradesFromLocal();
-      };
-      reader.readAsBinaryString(file);
-      e.target.value = '';
-    });
-
-    document.getElementById('gradingSelect').onchange = loadGradesFromLocal;
-    initSubjectDropdown();
   </script>
 </body>
 </html>
