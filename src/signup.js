@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      // Call Tauri command instead of HTTP request
+      // Call Tauri command with firstname and lastname
       const result = await window.__TAURI__.core.invoke("tauri_register", {
         payload: { 
           firstname, 

@@ -203,15 +203,24 @@
       background: #fff;
     }
 
-    td.editable-name {
+    .student-name-cell {
       text-align: left;
+      padding: 2px;
+    }
+
+    .student-dropdown {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      padding: 2px;
     }
 
     .gray-bg {
       background: #9df89d;
     }
 
-    /* Logout Button (from Attendance Page) */
+    /* Logout Button */
     .logout {
       margin-top: auto;
       padding-top: 30px;
@@ -243,7 +252,6 @@
 </head>
 <body>
 
-
   <div class="sidebar">
     <div class="profile-img" id="profileIcon"><img src="assets/profile.jpg" alt="Profile"></div>
     <div class="profile-name">Teacher</div>
@@ -262,7 +270,6 @@
     </div>
   </div>
 
-  
   <div class="main-content">
     <div style="text-align:right;margin-bottom:10px">
       <input type="file" id="fileInput" accept=".xlsx" style="display:none">
@@ -303,14 +310,29 @@
     </table>
   </div>
 
-  
   <script>
-    
     document.getElementById('profileIcon').onclick = () => location.href = 'profile.html';
 
     const getCurrentSubject = () => document.getElementById('subjectSelect').value || 'Unknown';
-    const getCurrentQuarter = () => document.getElementById('gradingSelect').value;   // 1st, 2nd, 3rd, 4th
+    const getCurrentQuarter = () => document.getElementById('gradingSelect').value;
     const storageKey = () => `grades-${getCurrentSubject()}-${getCurrentQuarter()}`;
+
+    // Get all students from localStorage
+    function getAllStudents() {
+      const students = JSON.parse(localStorage.getItem('students') || '[]');
+      const scheduleKeys = Object.keys(localStorage).filter(key => key.startsWith('students_'));
+      
+      scheduleKeys.forEach(key => {
+        const scheduleStudents = JSON.parse(localStorage.getItem(key) || '[]');
+        scheduleStudents.forEach(student => {
+          if (!students.find(s => s.name === student.name)) {
+            students.push(student);
+          }
+        });
+      });
+      
+      return students.filter(student => student.name && student.name.trim() !== '');
+    }
 
     function initSubjectDropdown() {
       const select = document.getElementById('subjectSelect');
@@ -323,34 +345,56 @@
 
       if (!subjects.length) return;
 
-    
       select.innerHTML = '';
       subjects.forEach((sub, i) => {
         const o = document.createElement('option');
         o.value = sub;
         o.textContent = `📚 ${sub}`;
         select.appendChild(o);
-        if (i === 0) select.value = sub;          
+        if (i === 0) select.value = sub;
       });
 
       select.hidden = false;
-      select.onchange = loadGradesFromLocal;     
-      loadGradesFromLocal();                    
+      select.onchange = loadGradesFromLocal;
+      loadGradesFromLocal();
     }
 
-    
     const studentDataBody = document.getElementById('student-data');
 
     function createStudentRow() {
       const tr = document.createElement('tr');
 
-    
-      const name = document.createElement('td');
-      name.className = 'editable-name';
-      name.contentEditable = true;
-      tr.appendChild(name);
+      // Create dropdown for student name
+      const nameCell = document.createElement('td');
+      nameCell.className = 'student-name-cell';
+      
+      const dropdown = document.createElement('select');
+      dropdown.className = 'student-dropdown';
+      
+      // Add empty option
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'Select Student';
+      dropdown.appendChild(emptyOption);
+      
+      // Add student options
+      const allStudents = getAllStudents();
+      allStudents.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.name;
+        option.textContent = student.name;
+        dropdown.appendChild(option);
+      });
+      
+      dropdown.onchange = function() {
+        saveGradesToLocal();
+        saveStudentGrades(this.value, tr);
+      };
+      
+      nameCell.appendChild(dropdown);
+      tr.appendChild(nameCell);
 
-     
+      // Written Works (4 inputs)
       for (let i = 0; i < 4; i++) {
         const td = document.createElement('td');
         td.contentEditable = true;
@@ -358,14 +402,14 @@
         tr.appendChild(td);
       }
 
-    
+      // Written Works calculated columns
       tr.innerHTML += `
         <td class="calculated ww-total">0.00</td>
         <td class="calculated ww-ps">0.00</td>
         <td class="calculated ww-wa">0.00</td>
       `;
 
-     
+      // Performance Tasks (4 inputs)
       for (let i = 0; i < 4; i++) {
         const td = document.createElement('td');
         td.contentEditable = true;
@@ -373,7 +417,7 @@
         tr.appendChild(td);
       }
 
-   
+      // Performance Tasks calculated columns + Quarterly Assessment
       tr.innerHTML += `
         <td class="calculated pt-total">0.00</td>
         <td class="calculated pt-ps">0.00</td>
@@ -387,31 +431,65 @@
       return tr;
     }
 
- 
+    // Clear existing rows and create new ones
     [...studentDataBody.querySelectorAll('tr:not(.section-title)')].forEach(r => r.remove());
     const header = studentDataBody.querySelector('.section-title');
     for (let i = 0; i < 30; i++) header.after(createStudentRow());
 
     const num = v => isNaN(parseFloat(v)) ? 0 : +parseFloat(v);
 
-    
     function saveGradesToLocal() {
       const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
-      const data = rows.map(r => [...r.children].map(c => c.textContent));
+      const data = rows.map(r => {
+        const cells = [...r.children];
+        return cells.map((c, index) => {
+          if (index === 0) {
+            // For the first cell (student name), get the dropdown value
+            const dropdown = c.querySelector('select');
+            return dropdown ? dropdown.value : '';
+          }
+          return c.textContent;
+        });
+      });
       localStorage.setItem(storageKey(), JSON.stringify(data));
+    }
+
+    function saveStudentGrades(studentName, row) {
+      if (!studentName) return;
+      
+      const subject = getCurrentSubject();
+      const quarter = getCurrentQuarter();
+      
+      // Get the final grade from the row
+      const finalGradeCell = row.querySelector('.final-grade');
+      const finalGrade = parseFloat(finalGradeCell.textContent) || 0;
+      
+      // Save to student's individual grades storage
+      const studentGradesKey = `student_grades_${studentName}`;
+      let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+      
+      if (!studentGrades[subject]) {
+        studentGrades[subject] = {};
+      }
+      
+      studentGrades[subject][quarter] = finalGrade;
+      localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
     }
 
     function loadGradesFromLocal() {
       const stored = localStorage.getItem(storageKey());
       const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
 
-            rows.forEach(r => {
+      // Reset all rows
+      rows.forEach(r => {
+        const dropdown = r.querySelector('.student-dropdown');
+        if (dropdown) dropdown.value = '';
         [...r.children].forEach((td, i) => {
           if (i !== 0) td.textContent = '';
         });
       });
 
-      if (!stored) {               
+      if (!stored) {
         rows.forEach(recalcRow);
         return;
       }
@@ -419,14 +497,44 @@
       JSON.parse(stored).forEach((rowData, i) => {
         const row = rows[i];
         if (!row) return;
+        
         rowData.forEach((text, j) => {
-          if (row.children[j]) row.children[j].textContent = text;
+          if (j === 0) {
+            // Set dropdown value for student name
+            const dropdown = row.querySelector('.student-dropdown');
+            if (dropdown) {
+              dropdown.value = text;
+              // Refresh dropdown options
+              refreshDropdownOptions(dropdown);
+            }
+          } else if (row.children[j]) {
+            row.children[j].textContent = text;
+          }
         });
       });
 
       rows.forEach(recalcRow);
     }
 
+    function refreshDropdownOptions(dropdown) {
+      const currentValue = dropdown.value;
+      const allStudents = getAllStudents();
+      
+      // Clear existing options except the first one
+      while (dropdown.children.length > 1) {
+        dropdown.removeChild(dropdown.lastChild);
+      }
+      
+      // Add updated student options
+      allStudents.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.name;
+        option.textContent = student.name;
+        dropdown.appendChild(option);
+      });
+      
+      dropdown.value = currentValue;
+    }
 
     function recalcRow(row) {
       const ww = [...row.querySelectorAll('[data-ww]')].map(td => num(td.textContent));
@@ -442,18 +550,23 @@
       row.querySelector('.pt-wa').textContent   = (ptT * 2.5).toFixed(2);
 
       const qa = num(row.querySelector('[data-qa="score"]').textContent || 0);
-      const QA_PS_FACTOR = 100 / 30;  
-      const QA_WA_FACTOR =  20 / 30;   
+      const QA_PS_FACTOR = 100 / 30;
+      const QA_WA_FACTOR =  20 / 30;
 
       row.querySelector('.qa-ps').textContent = (qa * QA_PS_FACTOR).toFixed(2);
       row.querySelector('.qa-wa').textContent = (qa * QA_WA_FACTOR).toFixed(2);
 
-      const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR); 
+      const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR);
       row.querySelector('.initial-grade').textContent = initial.toFixed(2);
       row.querySelector('.final-grade').textContent   = initial >= 0 ? initial.toFixed(2) : '#N/A';
+      
+      // Save student grades when recalculating
+      const dropdown = row.querySelector('.student-dropdown');
+      if (dropdown && dropdown.value) {
+        saveStudentGrades(dropdown.value, row);
+      }
     }
 
-    
     studentDataBody.addEventListener('input', e => {
       if (!e.target.isContentEditable) return;
       const tr = e.target.closest('tr');
@@ -462,24 +575,17 @@
       saveGradesToLocal();
     });
 
-    
     function updateStudentNamesAcrossSubjects(names) {
+      // This function is kept for compatibility but names are now handled via dropdown
       const scheduleRaw = localStorage.getItem('schedule');
       if (!scheduleRaw) return;
       const subjects = [...new Set(JSON.parse(scheduleRaw).map(s => s.subject).filter(Boolean))];
 
-      ['1st','2nd','3rd','4th'].forEach(q => {
-        subjects.forEach(subject => {
-          const key = `grades-${subject}-${q}`;
-          let data = JSON.parse(localStorage.getItem(key) || '[]');
-          while (data.length < 30) data.push(new Array(22).fill(''));
-          for (let i = 0; i < 30; i++) data[i][0] = names[i] || '';
-          localStorage.setItem(key, JSON.stringify(data));
-        });
-      });
+      // Refresh all dropdowns
+      const dropdowns = document.querySelectorAll('.student-dropdown');
+      dropdowns.forEach(refreshDropdownOptions);
     }
 
-    
     document.getElementById('fileInput').addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
@@ -491,8 +597,16 @@
         const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
         if (!data.length) return;
 
-       
         const names = data.slice(1).map(row => (row.length > 0 ? row[0] : ''));
+        
+        // Add names to students list
+        const existingStudents = JSON.parse(localStorage.getItem('students') || '[]');
+        names.forEach(name => {
+          if (name && !existingStudents.find(s => s.name === name)) {
+            existingStudents.push({ name });
+          }
+        });
+        localStorage.setItem('students', JSON.stringify(existingStudents));
 
         updateStudentNamesAcrossSubjects(names);
         loadGradesFromLocal();
@@ -501,9 +615,7 @@
       e.target.value = '';
     });
 
-
-   
-    document.getElementById('gradingSelect').onchange = loadGradesFromLocal; // reload when quarter changes
+    document.getElementById('gradingSelect').onchange = loadGradesFromLocal;
     initSubjectDropdown();
   </script>
 </body>
