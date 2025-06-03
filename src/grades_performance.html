@@ -1109,24 +1109,37 @@
     }
 
     function saveStudentGrades(studentName, row) {
-      if (!studentName) return;
-      
-      const subject = getCurrentSubject();
-      const quarter = getCurrentQuarter();
-      
-      const finalGradeCell = row.querySelector('.final-grade');
-      const finalGrade = parseFloat(finalGradeCell.textContent) || 0;
-      
-      const studentGradesKey = `student_grades_${studentName}`;
-      let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
-      
-      if (!studentGrades[subject]) {
-        studentGrades[subject] = {};
-      }
-      
-      studentGrades[subject][quarter] = finalGrade;
-      localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
-    }
+  if (!studentName || !studentName.trim()) return;
+  
+  const subject = getCurrentSubject();
+  const quarter = getCurrentQuarter();
+  
+  if (!subject || subject === 'Unknown') return;
+  
+  // Get the final grade from the row
+  const finalGradeCell = row.querySelector('.final-grade');
+  const finalGrade = parseFloat(finalGradeCell?.textContent) || 0;
+  
+  // Create a consistent student identifier
+  const normalizedStudentName = studentName.trim().toLowerCase();
+  const studentGradesKey = `student_grades_${normalizedStudentName}`;
+  
+  // Get existing grades
+  let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+  
+  // Initialize subject if it doesn't exist
+  if (!studentGrades[subject]) {
+    studentGrades[subject] = {};
+  }
+  
+  // Save the grade for this subject and quarter
+  studentGrades[subject][quarter] = finalGrade;
+  
+  // Store back to localStorage
+  localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
+  
+  console.log(`Saved grade for ${studentName}: ${subject} ${quarter}Q = ${finalGrade}`);
+}
 
     function loadGradesFromLocal() {
       currentQuarter = getCurrentQuarter();
