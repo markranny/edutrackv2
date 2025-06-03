@@ -31,17 +31,38 @@
       <table id="gradesTable">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>1st Grading</th>
-            <th>2nd Grading</th>
-            <th>3rd Grading</th>
-            <th>4th Grading</th>
-            <th>Final Average</th>
-            <th>Remarks</th>
+            <th rowspan="2">Subject</th>
+            <th colspan="4">Quarter Grades</th>
+            <th rowspan="2">Final Average</th>
+            <th rowspan="2">Remarks</th>
+          </tr>
+          <tr>
+            <th>1st</th>
+            <th>2nd</th>
+            <th>3rd</th>
+            <th>4th</th>
           </tr>
         </thead>
         <tbody id="gradesTableBody">
           <!-- Grades will be populated by JavaScript -->
+        </tbody>
+      </table>
+
+      <!-- Detailed Breakdown Table -->
+      <h2 style="margin-top: 40px; color: #2c3e50;">Grade Component Breakdown</h2>
+      <table id="breakdownTable" class="grading-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Written Works (30%)</th>
+            <th>Performance Tasks (50%)</th>
+            <th>Quarterly Assessment (20%)</th>
+            <th>Computed Grade</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody id="breakdownTableBody">
+          <!-- Breakdown will be populated by JavaScript -->
         </tbody>
       </table>
     
@@ -104,146 +125,289 @@
 
       // Load and display student grades
       loadStudentGrades();
+      loadGradeBreakdown();
+
+      function getDetailedGradeData(subject, quarter) {
+        const studentGradesKey = `student_grades_${studentName}`;
+        const studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+        
+        if (studentGrades[subject] && studentGrades[subject][`${quarter}_details`]) {
+          return studentGrades[subject][`${quarter}_details`];
+        }
+        
+        // Fallback: try to get from the teacher's grade storage
+        const key = `grades-${subject}-${quarter}`;
+        const gradeData = JSON.parse(localStorage.getItem(key) || '[]');
+        
+        // Find the student's row in the grade data
+        const studentRow = gradeData.find(row => {
+          if (Array.isArray(row) && row.length > 0) {
+            const name = row[0];
+            return name === studentName || 
+                   name === `${currentUser.firstname} ${currentUser.lastname}`.trim() ||
+                   name.toLowerCase().includes(currentUser.firstname?.toLowerCase() || '') ||
+                   name.toLowerCase().includes(currentUser.lastname?.toLowerCase() || '');
+          }
+          return false;
+        });
+
+        if (!studentRow) return null;
+
+        // Extract grade components based on the structure
+        return {
+          writtenWorks: {
+            scores: [
+              parseFloat(studentRow[1]) || 0,
+              parseFloat(studentRow[2]) || 0,
+              parseFloat(studentRow[3]) || 0,
+              parseFloat(studentRow[4]) || 0
+            ],
+            total: parseFloat(studentRow[5]) || 0,
+            percentage: parseFloat(studentRow[6]) || 0,
+            weighted: parseFloat(studentRow[7]) || 0
+          },
+          performanceTasks: {
+            scores: [
+              parseFloat(studentRow[8]) || 0,
+              parseFloat(studentRow[9]) || 0,
+              parseFloat(studentRow[10]) || 0,
+              parseFloat(studentRow[11]) || 0
+            ],
+            total: parseFloat(studentRow[12]) || 0,
+            percentage: parseFloat(studentRow[13]) || 0,
+            weighted: parseFloat(studentRow[14]) || 0
+          },
+          quarterlyAssessment: {
+            score: parseFloat(studentRow[15]) || 0,
+            percentage: parseFloat(studentRow[16]) || 0,
+            weighted: parseFloat(studentRow[17]) || 0
+          },
+          finalGrade: parseFloat(studentRow[18]) || 0
+        };
+      }
+
+      function loadGradeBreakdown() {
+        const scheduleData = JSON.parse(localStorage.getItem('schedule') || '[]');
+        const subjects = [...new Set(scheduleData.map(s => s.subject).filter(Boolean))];
+        const breakdownTableBody = document.getElementById('breakdownTableBody');
+        
+        breakdownTableBody.innerHTML = '';
+
+        if (subjects.length === 0) {
+          subjects.push('Mathematics', 'English', 'Science', 'History', 'GMRC');
+        }
+
+        subjects.forEach(subject => {
+          // Get data for all quarters and calculate detailed breakdown
+          const quarters = ['1st', '2nd', '3rd', '4th'];
+          let hasAnyData = false;
+          let totalWW = 0, totalPT = 0, totalQA = 0, quarterCount = 0;
+          
+          quarters.forEach(quarter => {
+            const gradeData = getDetailedGradeData(subject, quarter);
+            if (gradeData && gradeData.finalGrade > 0) {
+              hasAnyData = true;
+              totalWW += gradeData.writtenWorks.weighted;
+              totalPT += gradeData.performanceTasks.weighted;
+              totalQA += gradeData.quarterlyAssessment.weighted;
+              quarterCount++;
+            }
+          });
+          
+          const row = document.createElement('tr');
+          
+          // Subject name
+          const subjectCell = document.createElement('td');
+          subjectCell.textContent = subject;
+          subjectCell.style.fontWeight = 'bold';
+          row.appendChild(subjectCell);
+
+          if (hasAnyData && quarterCount > 0) {
+            // Calculate averages
+            const avgWW = totalWW / quarterCount;
+            const avgPT = totalPT / quarterCount;
+            const avgQA = totalQA / quarterCount;
+            const computedGrade = avgWW + avgPT + avgQA;
+
+            // Written Works
+            const wwCell = document.createElement('td');
+            wwCell.innerHTML = `
+              <div><strong>Average: ${avgWW.toFixed(1)}</strong></div>
+              <div style="font-size: 11px; color: #666;">Weight: 30%</div>
+            `;
+            row.appendChild(wwCell);
+
+            // Performance Tasks
+            const ptCell = document.createElement('td');
+            ptCell.innerHTML = `
+              <div><strong>Average: ${avgPT.toFixed(1)}</strong></div>
+              <div style="font-size: 11px; color: #666;">Weight: 50%</div>
+            `;
+            row.appendChild(ptCell);
+
+            // Quarterly Assessment
+            const qaCell = document.createElement('td');
+            qaCell.innerHTML = `
+              <div><strong>Average: ${avgQA.toFixed(1)}</strong></div>
+              <div style="font-size: 11px; color: #666;">Weight: 20%</div>
+            `;
+            row.appendChild(qaCell);
+
+            // Computed Grade
+            const gradeCell = document.createElement('td');
+            gradeCell.textContent = computedGrade.toFixed(1);
+            gradeCell.style.fontWeight = 'bold';
+            gradeCell.style.fontSize = '16px';
+            gradeCell.style.backgroundColor = '#e8f5e8';
+            row.appendChild(gradeCell);
+
+            // Remarks
+            const remarksCell = document.createElement('td');
+            if (computedGrade >= 90) {
+              remarksCell.textContent = 'Outstanding';
+              remarksCell.className = 'passed';
+            } else if (computedGrade >= 85) {
+              remarksCell.textContent = 'Very Satisfactory';
+              remarksCell.className = 'passed';
+            } else if (computedGrade >= 80) {
+              remarksCell.textContent = 'Satisfactory';
+              remarksCell.className = 'passed';
+            } else if (computedGrade >= 75) {
+              remarksCell.textContent = 'Fairly Satisfactory';
+              remarksCell.className = 'passed';
+            } else {
+              remarksCell.textContent = 'Did Not Meet Expectations';
+              remarksCell.className = 'failed';
+            }
+            row.appendChild(remarksCell);
+          } else {
+            // No data available
+            for (let i = 0; i < 5; i++) {
+              const cell = document.createElement('td');
+              cell.textContent = 'No data';
+              cell.style.color = '#666';
+              cell.style.fontStyle = 'italic';
+              row.appendChild(cell);
+            }
+          }
+
+          breakdownTableBody.appendChild(row);
+        });
+      }
 
       function loadStudentGrades() {
-  // Get current student from session storage
-  const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
-  
-  // Create consistent student name
-  let studentName = '';
-  if (currentUser.firstname || currentUser.lastname) {
-    studentName = `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim();
-  }
-  
-  if (!studentName) {
-    console.warn('No student name found in session');
-    return;
-  }
-  
-  // Use normalized name for lookup
-  const normalizedStudentName = studentName.toLowerCase();
-  const studentGradesKey = `student_grades_${normalizedStudentName}`;
-  
-  const grades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
-  const tableBody = document.getElementById('gradesTableBody');
-  
-  // Clear existing rows
-  tableBody.innerHTML = '';
+        const studentGradesKey = `student_grades_${studentName}`;
+        const grades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+        const tableBody = document.getElementById('gradesTableBody');
+        
+        // Clear existing rows
+        tableBody.innerHTML = '';
 
-  // Get all subjects from schedule
-  const scheduleData = JSON.parse(localStorage.getItem('schedule') || '[]');
-  const subjects = [...new Set(scheduleData.map(s => s.subject).filter(Boolean))];
+        // Get all subjects from schedule
+        const scheduleData = JSON.parse(localStorage.getItem('schedule') || '[]');
+        const subjects = [...new Set(scheduleData.map(s => s.subject).filter(Boolean))];
 
-  if (subjects.length === 0) {
-    // Default subjects if no schedule found
-    subjects.push('Mathematics', 'English', 'Science', 'History', 'GMRC');
-  }
+        if (subjects.length === 0) {
+          // Default subjects if no schedule found
+          subjects.push('Mathematics', 'English', 'Science', 'History', 'GMRC');
+        }
 
-  let totalFinalAverage = 0;
-  let subjectCount = 0;
+        let totalFinalAverage = 0;
+        let subjectCount = 0;
 
-  subjects.forEach(subject => {
-    const row = document.createElement('tr');
-    
-    // Subject name
-    const subjectCell = document.createElement('td');
-    subjectCell.textContent = subject;
-    row.appendChild(subjectCell);
+        subjects.forEach(subject => {
+          const row = document.createElement('tr');
+          
+          // Subject name
+          const subjectCell = document.createElement('td');
+          subjectCell.textContent = subject;
+          row.appendChild(subjectCell);
 
-    // Quarter grades
-    const quarters = ['1st', '2nd', '3rd', '4th'];
-    const quarterGrades = [];
-    
-    quarters.forEach(quarter => {
-      const cell = document.createElement('td');
-      const grade = grades[subject] && grades[subject][quarter] ? grades[subject][quarter] : null;
-      
-      if (grade !== null && grade > 0) {
-        cell.textContent = grade.toFixed(1);
-        quarterGrades.push(parseFloat(grade));
-      } else {
-        cell.textContent = '';
+          // Quarter grades
+          const quarters = ['1st', '2nd', '3rd', '4th'];
+          const quarterGrades = [];
+          
+          quarters.forEach(quarter => {
+            const cell = document.createElement('td');
+            const grade = grades[subject] && grades[subject][quarter] ? grades[subject][quarter].toFixed(1) : '';
+            cell.textContent = grade;
+            if (grade) quarterGrades.push(parseFloat(grade));
+            row.appendChild(cell);
+          });
+
+          // Calculate final average for this subject
+          const finalAverage = quarterGrades.length > 0 ? 
+            quarterGrades.reduce((sum, grade) => sum + grade, 0) / quarterGrades.length : 0;
+
+          // Final Average cell
+          const avgCell = document.createElement('td');
+          if (finalAverage > 0) {
+            avgCell.textContent = finalAverage.toFixed(1);
+            totalFinalAverage += finalAverage;
+            subjectCount++;
+          }
+          row.appendChild(avgCell);
+
+          // Remarks cell
+          const remarksCell = document.createElement('td');
+          if (finalAverage > 0) {
+            if (finalAverage >= 90) {
+              remarksCell.textContent = 'Outstanding';
+              remarksCell.className = 'passed';
+            } else if (finalAverage >= 85) {
+              remarksCell.textContent = 'Very Satisfactory';
+              remarksCell.className = 'passed';
+            } else if (finalAverage >= 80) {
+              remarksCell.textContent = 'Satisfactory';
+              remarksCell.className = 'passed';
+            } else if (finalAverage >= 75) {
+              remarksCell.textContent = 'Fairly Satisfactory';
+              remarksCell.className = 'passed';
+            } else {
+              remarksCell.textContent = 'Did Not Meet Expectations';
+              remarksCell.className = 'failed';
+            }
+          }
+          row.appendChild(remarksCell);
+
+          tableBody.appendChild(row);
+        });
+
+        // Add General Average row
+        if (subjectCount > 0) {
+          const genAvgRow = document.createElement('tr');
+          genAvgRow.style.backgroundColor = '#e8f4f8';
+          genAvgRow.style.fontWeight = 'bold';
+
+          const genAvgLabel = document.createElement('td');
+          genAvgLabel.textContent = 'GENERAL AVERAGE';
+          genAvgRow.appendChild(genAvgLabel);
+
+          // Empty cells for quarters
+          for (let i = 0; i < 4; i++) {
+            genAvgRow.appendChild(document.createElement('td'));
+          }
+
+          // General average calculation
+          const generalAverage = totalFinalAverage / subjectCount;
+          const genAvgCell = document.createElement('td');
+          genAvgCell.textContent = generalAverage.toFixed(1);
+          genAvgRow.appendChild(genAvgCell);
+
+          // General remarks
+          const genRemarksCell = document.createElement('td');
+          if (generalAverage >= 75) {
+            genRemarksCell.textContent = 'PASSED';
+            genRemarksCell.className = 'passed';
+          } else {
+            genRemarksCell.textContent = 'FAILED';
+            genRemarksCell.className = 'failed';
+          }
+          genAvgRow.appendChild(genRemarksCell);
+
+          tableBody.appendChild(genAvgRow);
+        }
       }
-      row.appendChild(cell);
-    });
-
-    // Calculate final average for this subject
-    const finalAverage = quarterGrades.length > 0 ? 
-      quarterGrades.reduce((sum, grade) => sum + grade, 0) / quarterGrades.length : 0;
-
-    // Final Average cell
-    const avgCell = document.createElement('td');
-    if (finalAverage > 0) {
-      avgCell.textContent = finalAverage.toFixed(1);
-      totalFinalAverage += finalAverage;
-      subjectCount++;
-    } else {
-      avgCell.textContent = '';
-    }
-    row.appendChild(avgCell);
-
-    // Remarks cell
-    const remarksCell = document.createElement('td');
-    if (finalAverage > 0) {
-      if (finalAverage >= 90) {
-        remarksCell.textContent = 'Outstanding';
-        remarksCell.className = 'passed';
-      } else if (finalAverage >= 85) {
-        remarksCell.textContent = 'Very Satisfactory';
-        remarksCell.className = 'passed';
-      } else if (finalAverage >= 80) {
-        remarksCell.textContent = 'Satisfactory';
-        remarksCell.className = 'passed';
-      } else if (finalAverage >= 75) {
-        remarksCell.textContent = 'Fairly Satisfactory';
-        remarksCell.className = 'passed';
-      } else {
-        remarksCell.textContent = 'Did Not Meet Expectations';
-        remarksCell.className = 'failed';
-      }
-    } else {
-      remarksCell.textContent = '';
-    }
-    row.appendChild(remarksCell);
-
-    tableBody.appendChild(row);
-  });
-
-  // Add General Average row if there are grades
-  if (subjectCount > 0) {
-    const genAvgRow = document.createElement('tr');
-    genAvgRow.style.backgroundColor = '#e8f4f8';
-    genAvgRow.style.fontWeight = 'bold';
-
-    const genAvgLabel = document.createElement('td');
-    genAvgLabel.textContent = 'GENERAL AVERAGE';
-    genAvgRow.appendChild(genAvgLabel);
-
-    // Empty cells for quarters
-    for (let i = 0; i < 4; i++) {
-      genAvgRow.appendChild(document.createElement('td'));
-    }
-
-    // General average calculation
-    const generalAverage = totalFinalAverage / subjectCount;
-    const genAvgCell = document.createElement('td');
-    genAvgCell.textContent = generalAverage.toFixed(1);
-    genAvgRow.appendChild(genAvgCell);
-
-    // General remarks
-    const genRemarksCell = document.createElement('td');
-    if (generalAverage >= 75) {
-      genRemarksCell.textContent = 'PASSED';
-      genRemarksCell.className = 'passed';
-    } else {
-      genRemarksCell.textContent = 'FAILED';
-      genRemarksCell.className = 'failed';
-    }
-    genAvgRow.appendChild(genRemarksCell);
-
-    tableBody.appendChild(genAvgRow);
-  }
-}
     });
   </script>
 </body>
