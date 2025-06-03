@@ -1014,8 +1014,11 @@
       });
       
       dropdown.onchange = function() {
-        saveGradesToLocal();
-        saveStudentGrades(this.value, tr);
+        // Trigger save when student is selected
+        setTimeout(() => {
+          saveGradesToLocal();
+          saveStudentGrades(this.value, tr);
+        }, 100);
       };
       
       nameCell.appendChild(dropdown);
@@ -1065,8 +1068,21 @@
         if (!e.target.isContentEditable) return;
         const tr = e.target.closest('tr');
         if (!tr) return;
+        
+        // Recalculate row
         recalcRow(tr);
-        saveGradesToLocal();
+        
+        // Save data with a small delay to avoid too frequent saves
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(() => {
+          saveGradesToLocal();
+          
+          // Also save student grades if student is selected
+          const dropdown = tr.querySelector('.student-dropdown');
+          if (dropdown && dropdown.value) {
+            saveStudentGrades(dropdown.value, tr);
+          }
+        }, 500);
       });
     }
 
@@ -1079,10 +1095,17 @@
             const dropdown = c.querySelector('select');
             return dropdown ? dropdown.value : '';
           }
-          return c.textContent;
+          return c.textContent || '';
         });
       });
-      localStorage.setItem(storageKey(), JSON.stringify(data));
+      
+      // Filter out completely empty rows
+      const filteredData = data.filter(rowData => 
+        rowData.some(cell => cell && cell.trim() !== '')
+      );
+      
+      localStorage.setItem(storageKey(), JSON.stringify(filteredData));
+      console.log(`Saved grades for ${getCurrentSubject()} - ${getCurrentQuarter()}`);
     }
 
     function saveStudentGrades(studentName, row) {
@@ -1110,10 +1133,13 @@
       const stored = localStorage.getItem(storageKey());
       const rows = [...document.getElementById('student-data').querySelectorAll('tr:not(.section-title)')];
 
-      // Reset all rows
+      // Reset all rows first
       rows.forEach(r => {
         const dropdown = r.querySelector('.student-dropdown');
-        if (dropdown) dropdown.value = '';
+        if (dropdown) {
+          dropdown.value = '';
+          refreshDropdownOptions(dropdown);
+        }
         [...r.children].forEach((td, i) => {
           if (i !== 0) td.textContent = '';
         });
@@ -1121,10 +1147,14 @@
 
       if (!stored) {
         rows.forEach(recalcRow);
+        console.log(`No stored data found for ${storageKey()}`);
         return;
       }
 
-      JSON.parse(stored).forEach((rowData, i) => {
+      const data = JSON.parse(stored);
+      console.log(`Loading grades for ${storageKey()}:`, data);
+
+      data.forEach((rowData, i) => {
         const row = rows[i];
         if (!row) return;
         
@@ -1132,11 +1162,10 @@
           if (j === 0) {
             const dropdown = row.querySelector('.student-dropdown');
             if (dropdown) {
-              dropdown.value = text;
-              refreshDropdownOptions(dropdown);
+              dropdown.value = text || '';
             }
           } else if (row.children[j]) {
-            row.children[j].textContent = text;
+            row.children[j].textContent = text || '';
           }
         });
       });
@@ -1148,10 +1177,12 @@
       const currentValue = dropdown.value;
       const allStudents = getAllStudents();
       
+      // Clear all options except the first empty one
       while (dropdown.children.length > 1) {
         dropdown.removeChild(dropdown.lastChild);
       }
       
+      // Add updated student options
       allStudents.forEach(student => {
         const option = document.createElement('option');
         option.value = student.name;
@@ -1159,22 +1190,26 @@
         dropdown.appendChild(option);
       });
       
+      // Restore the current value
       dropdown.value = currentValue;
     }
 
     function recalcRow(row) {
+      // Written Works calculations
       const ww = [...row.querySelectorAll('[data-ww]')].map(td => num(td.textContent));
       const wwT = ww.reduce((a, b) => a + b, 0);
       row.querySelector('.ww-total').textContent = wwT.toFixed(2);
       row.querySelector('.ww-ps').textContent = (wwT * 5).toFixed(2);
       row.querySelector('.ww-wa').textContent = (wwT * 1.5).toFixed(2);
 
+      // Performance Tasks calculations
       const pt = [...row.querySelectorAll('[data-pt]')].map(td => num(td.textContent));
       const ptT = pt.reduce((a, b) => a + b, 0);
       row.querySelector('.pt-total').textContent = ptT.toFixed(2);
       row.querySelector('.pt-ps').textContent = (ptT * 5).toFixed(2);
       row.querySelector('.pt-wa').textContent = (ptT * 2.5).toFixed(2);
 
+      // Quarterly Assessment calculations
       const qa = num(row.querySelector('[data-qa="score"]').textContent || 0);
       const QA_PS_FACTOR = 100 / 30;
       const QA_WA_FACTOR = 20 / 30;
@@ -1182,10 +1217,12 @@
       row.querySelector('.qa-ps').textContent = (qa * QA_PS_FACTOR).toFixed(2);
       row.querySelector('.qa-wa').textContent = (qa * QA_WA_FACTOR).toFixed(2);
 
+      // Final grade calculations
       const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR);
       row.querySelector('.initial-grade').textContent = initial.toFixed(2);
       row.querySelector('.final-grade').textContent = initial >= 0 ? initial.toFixed(2) : '0.00';
       
+      // Save student grades if student is selected
       const dropdown = row.querySelector('.student-dropdown');
       if (dropdown && dropdown.value) {
         saveStudentGrades(dropdown.value, row);
