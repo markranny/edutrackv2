@@ -303,22 +303,22 @@
         <div class="stat-card">
           <h3>Written Works</h3>
           <div class="stat-value" id="wwAverage">0</div>
-          <div class="stat-label">Average Score</div>
+          <div class="stat-label">Average Score (30%)</div>
         </div>
         <div class="stat-card">
           <h3>Performance Tasks</h3>
           <div class="stat-value" id="ptAverage">0</div>
-          <div class="stat-label">Average Score</div>
+          <div class="stat-label">Average Score (50%)</div>
         </div>
         <div class="stat-card">
           <h3>Quarterly Assessment</h3>
           <div class="stat-value" id="qaAverage">0</div>
-          <div class="stat-label">Average Score</div>
+          <div class="stat-label">Average Score (20%)</div>
         </div>
         <div class="stat-card">
           <h3>Overall Grade</h3>
           <div class="stat-value" id="overallGrade">0</div>
-          <div class="stat-label">Final Grade</div>
+          <div class="stat-label">Final Grade (100%)</div>
         </div>
       </div>
 
@@ -386,18 +386,6 @@
           }
         }
         
-        // Method 3: Look for any subjects that might exist in a different format
-        // Check for common subject names that might be in the data
-        const commonSubjects = ['sample', 'math', 'english', 'science', 'history', 'language', 'mathematics'];
-        for (let subject of commonSubjects) {
-          for (let quarter of quarters) {
-            const key = `grades-${subject}-${quarter}`;
-            if (localStorage.getItem(key)) {
-              gradeSubjects.push(subject);
-            }
-          }
-        }
-        
         return [...new Set(gradeSubjects)].sort((a, b) => a.localeCompare(b));
       }
 
@@ -423,9 +411,10 @@
           const data = JSON.parse(localStorage.getItem(key) || '[]');
           
           console.log(`Checking subject: ${subject}, key: ${key}, data length: ${data.length}`);
-          console.log(`Full data for ${subject}:`, data);
           
           if (data.length > 0) {
+            console.log(`Full data array for ${subject}:`, data);
+            
             // Get current user info
             const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
             const userFirstName = (currentUser.firstname || '').toLowerCase();
@@ -433,68 +422,84 @@
             const userFullName = `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim().toLowerCase();
             
             console.log(`Looking for user: "${userFullName}"`);
+            console.log(`User first name: "${userFirstName}", last name: "${userLastName}"`);
             
-            // Look for student data - try multiple matching strategies
+            // Look for student data
             let studentRow = null;
             let rowIndex = -1;
             
-            // Check each row in detail
+            // Enhanced debugging - show all rows first
             data.forEach((row, index) => {
-              if (row && row[0]) {
-                console.log(`Row ${index}: "${row[0]}" - Length: ${row.length}`);
-                console.log(`Row ${index} data:`, row);
+              console.log(`Row ${index}:`, row);
+              if (row && row.length > 0) {
+                console.log(`  Name in row ${index}: "${row[0]}" (length: ${row.length})`);
               }
             });
             
-            // Strategy 1: Find by exact full name match
+            // Strategy 1: Find by exact name match
             if (userFullName) {
               data.forEach((row, index) => {
                 if (row && row[0]) {
-                  const rowName = row[0].trim().toLowerCase();
+                  const rowName = row[0].toString().trim().toLowerCase();
                   console.log(`Comparing "${rowName}" with "${userFullName}"`);
                   if (rowName === userFullName || 
                       rowName.includes(userFullName) ||
                       userFullName.includes(rowName) ||
                       (userFirstName && rowName.includes(userFirstName)) ||
                       (userLastName && rowName.includes(userLastName))) {
-                    console.log(`✅ Found match at row ${index}`);
+                    console.log(`✅ Found name match at row ${index}`);
                     studentRow = row;
                     rowIndex = index;
+                    return; // Exit loop once found
                   }
                 }
               });
             }
             
-            // Strategy 2: If no match found, take the first row with data (excluding header-like rows)
+            // Strategy 2: If no name match, look for any row with student data
             if (!studentRow) {
-              console.log('No name match found, looking for any row with data...');
+              console.log('No name match found, looking for any row with student data...');
               data.forEach((row, index) => {
                 if (row && row.length >= 5 && row[0] && 
-                    row[0].trim() !== '' && 
-                    row[0].toLowerCase() !== 'select student' &&
-                    row[0].toLowerCase() !== 'name' &&
-                    !row[0].toLowerCase().includes('students')) {
-                  console.log(`Checking row ${index} for data:`, row);
-                  // Check if this row has numerical data
-                  const hasNumericalData = row.slice(1).some(cell => {
-                    const val = parseFloat(cell);
-                    return !isNaN(val) && val >= 0;
+                    row[0].toString().trim() !== '' && 
+                    row[0].toString().toLowerCase() !== 'select student' &&
+                    row[0].toString().toLowerCase() !== 'name' &&
+                    !row[0].toString().toLowerCase().includes('students') &&
+                    !row[0].toString().toLowerCase().includes('total') &&
+                    row[0].toString().toLowerCase() !== 'average') {
+                  
+                  console.log(`Checking row ${index} for numerical data:`, row);
+                  
+                  // Check multiple possible column positions for grade data
+                  const possibleGradeColumns = [7, 15, 18, 21, 22, 23, 24]; // Check various columns
+                  let hasNumericalData = false;
+                  
+                  possibleGradeColumns.forEach(col => {
+                    if (row[col] !== undefined && row[col] !== null && row[col] !== '') {
+                      const val = parseFloat(row[col]);
+                      if (!isNaN(val) && val > 0) {
+                        console.log(`  Found numerical data in column ${col}: ${val}`);
+                        hasNumericalData = true;
+                      }
+                    }
                   });
+                  
                   if (hasNumericalData && !studentRow) {
-                    console.log(`✅ Using row ${index} as it has data`);
+                    console.log(`✅ Using row ${index} as it has numerical grade data`);
                     studentRow = row;
                     rowIndex = index;
+                    return; // Exit loop once found
                   }
                 }
               });
             }
             
-            // Strategy 3: If still no match, just take the first non-empty row
-            if (!studentRow && data.length > 0) {
-              console.log('Still no match, taking first available row...');
-              for (let i = 0; i < data.length; i++) {
-                if (data[i] && data[i][0] && data[i][0].trim() !== '') {
-                  console.log(`✅ Using row ${i} as fallback:`, data[i]);
+            // Strategy 3: If still no data, take the first non-empty row
+            if (!studentRow && data.length > 1) {
+              console.log('Still no match, taking first available non-header row...');
+              for (let i = 1; i < data.length; i++) { // Start from index 1 to skip potential header
+                if (data[i] && data[i][0] && data[i][0].toString().trim() !== '') {
+                  console.log(`✅ Using fallback row ${i}:`, data[i]);
                   studentRow = data[i];
                   rowIndex = i;
                   break;
@@ -505,76 +510,135 @@
             console.log(`Final student row for ${subject}:`, studentRow);
             console.log(`Row index: ${rowIndex}`);
             
-            if (studentRow && studentRow.length >= 18) {
-              // Extract grades from the correct columns based on your requirements:
-              // Written Works WA: column index 7 (24.00)
-              // Performance Tasks WA: column index 15 (40.00) 
-              // Quarterly Assessment WA: column index 18 (33.33)
-              // Overall Grade (Quarterly Grade): column index 21 (97.33)
+            if (studentRow && studentRow.length >= 5) {
+              // Try to extract grades from multiple possible column positions
+              // The exact columns might vary depending on the data structure
               
-              // Try to parse values, but be more flexible with data extraction
-              let wwWA = 0;
-              let ptWA = 0; 
-              let qaWA = 0;
-              let finalGrade = 0;
+              let wwWA = 0, ptWA = 0, qaWA = 0, finalGrade = 0;
               
-              // Extract Written Works WA (column 7)
-              if (studentRow[7] !== undefined && studentRow[7] !== null && studentRow[7] !== '') {
-                wwWA = parseFloat(studentRow[7]) || 0;
+              // Method 1: Try standard column positions for weighted averages
+              if (studentRow.length >= 22) {
+                // Based on the typical grade structure, the WA (Weighted Average) columns are:
+                // Written Works WA is usually around column 7
+                // Performance Tasks WA is usually around column 15  
+                // Quarterly Assessment WA is usually around column 18
+                // Final Grade is usually the last meaningful column
+                
+                wwWA = parseFloat(studentRow[7]) || 0;    // Written Works WA (should be ~30% weight)
+                ptWA = parseFloat(studentRow[15]) || 0;   // Performance Tasks WA (should be ~50% weight)  
+                qaWA = parseFloat(studentRow[18]) || 0;   // Quarterly Assessment WA (should be ~20% weight)
+                finalGrade = parseFloat(studentRow[21]) || 0; // Final Grade (should be ~100%)
+                
+                console.log(`Standard extraction attempt for ${subject}:`);
+                console.log(`  WW WA (col 7): ${wwWA}`);
+                console.log(`  PT WA (col 15): ${ptWA}`);
+                console.log(`  QA WA (col 18): ${qaWA}`);
+                console.log(`  Final (col 21): ${finalGrade}`);
+                
+                // If these values seem too low (like 5,5,5 instead of weighted averages),
+                // they might be raw scores that need to be converted to weighted averages
+                if (wwWA > 0 && wwWA <= 10 && ptWA > 0 && ptWA <= 10 && qaWA > 0 && qaWA <= 10) {
+                  console.log(`Values seem to be raw scores, converting to weighted averages...`);
+                  // Assuming these are raw scores out of 5, convert to weighted averages
+                  // WW: (score/5) * 30 = weighted average for 30%
+                  // PT: (score/5) * 50 = weighted average for 50%  
+                  // QA: (score/30) * 20 = weighted average for 20% (QA is usually out of 30)
+                  wwWA = (wwWA / 5) * 30;
+                  ptWA = (ptWA / 5) * 50;
+                  qaWA = (qaWA / 30) * 20; // QA typically scored out of 30
+                  
+                  console.log(`Converted to weighted averages:`);
+                  console.log(`  WW WA: ${wwWA.toFixed(1)}`);
+                  console.log(`  PT WA: ${ptWA.toFixed(1)}`);
+                  console.log(`  QA WA: ${qaWA.toFixed(1)}`);
+                }
               }
               
-              // Extract Performance Tasks WA (column 15)
-              if (studentRow[15] !== undefined && studentRow[15] !== null && studentRow[15] !== '') {
-                ptWA = parseFloat(studentRow[15]) || 0;
-              }
-              
-              // Extract Quarterly Assessment WA (column 18)
-              if (studentRow[18] !== undefined && studentRow[18] !== null && studentRow[18] !== '') {
-                qaWA = parseFloat(studentRow[18]) || 0;
-              }
-              
-              // Extract Overall Grade (column 21)
-              if (studentRow[21] !== undefined && studentRow[21] !== null && studentRow[21] !== '') {
-                finalGrade = parseFloat(studentRow[21]) || 0;
-              }
-              
-              // If specific columns don't have data, try to find any numeric data in the row
+              // Method 2: If standard columns are empty, scan for any numerical data
               if (wwWA === 0 && ptWA === 0 && qaWA === 0 && finalGrade === 0) {
-                console.log('No data in expected columns, scanning for any numeric values...');
+                console.log(`Standard columns empty, scanning all columns for numerical data...`);
                 const numericValues = [];
-                studentRow.forEach((cell, idx) => {
-                  if (idx > 0) { // Skip name column
-                    const val = parseFloat(cell);
-                    if (!isNaN(val) && val > 0) {
-                      numericValues.push({index: idx, value: val});
-                      console.log(`Found numeric value ${val} at column ${idx}`);
+                
+                for (let i = 1; i < studentRow.length; i++) {
+                  const val = parseFloat(studentRow[i]);
+                  if (!isNaN(val) && val > 0) {
+                    numericValues.push({column: i, value: val});
+                    console.log(`  Found value ${val} at column ${i}`);
+                  }
+                }
+                
+                // If we found numeric values, try to map them intelligently
+                if (numericValues.length > 0) {
+                  console.log(`Found ${numericValues.length} numeric values, attempting to map...`);
+                  
+                  // Try to find values that look like weighted averages
+                  // WW should be around 0-30, PT around 0-50, QA around 0-20, Final around 70-100
+                  const wwCandidates = numericValues.filter(v => v.value >= 15 && v.value <= 35);
+                  const ptCandidates = numericValues.filter(v => v.value >= 25 && v.value <= 55);
+                  const qaCandidates = numericValues.filter(v => v.value >= 10 && v.value <= 25);
+                  const finalCandidates = numericValues.filter(v => v.value >= 70 && v.value <= 100);
+                  
+                  if (wwCandidates.length > 0) {
+                    wwWA = wwCandidates[0].value;
+                    console.log(`  Assigned WW: ${wwWA} from column ${wwCandidates[0].column}`);
+                  } else {
+                    // Look for smaller values that might be raw scores to convert
+                    const rawWW = numericValues.filter(v => v.value >= 1 && v.value <= 5);
+                    if (rawWW.length > 0) {
+                      wwWA = (rawWW[0].value / 5) * 30; // Convert to weighted average
+                      console.log(`  Assigned WW: ${wwWA.toFixed(1)} (converted from raw score ${rawWW[0].value})`);
                     }
                   }
-                });
-                
-                // If we found numeric values, use them
-                if (numericValues.length > 0) {
-                  // Use the values we found - try to map to expected positions
-                  if (numericValues.length >= 4) {
-                    wwWA = numericValues[0].value || 0;
-                    ptWA = numericValues[1].value || 0;
-                    qaWA = numericValues[2].value || 0;
-                    finalGrade = numericValues[3].value || 0;
-                  } else if (numericValues.length >= 1) {
-                    // If we only have one value, use it as the final grade
-                    finalGrade = numericValues[numericValues.length - 1].value;
-                    // Estimate other values based on the final grade
-                    wwWA = finalGrade * 0.3;
-                    ptWA = finalGrade * 0.5;
-                    qaWA = finalGrade * 0.2;
+                  
+                  if (ptCandidates.length > 0) {
+                    ptWA = ptCandidates[0].value;
+                    console.log(`  Assigned PT: ${ptWA} from column ${ptCandidates[0].column}`);
+                  } else {
+                    // Look for smaller values that might be raw scores to convert
+                    const rawPT = numericValues.filter(v => v.value >= 1 && v.value <= 5);
+                    if (rawPT.length > 1) { // Take second value if available
+                      ptWA = (rawPT[1].value / 5) * 50; // Convert to weighted average
+                      console.log(`  Assigned PT: ${ptWA.toFixed(1)} (converted from raw score ${rawPT[1].value})`);
+                    } else if (rawPT.length > 0) {
+                      ptWA = (rawPT[0].value / 5) * 50;
+                      console.log(`  Assigned PT: ${ptWA.toFixed(1)} (converted from raw score ${rawPT[0].value})`);
+                    }
+                  }
+                  
+                  if (qaCandidates.length > 0) {
+                    qaWA = qaCandidates[0].value;
+                    console.log(`  Assigned QA: ${qaWA} from column ${qaCandidates[0].column}`);
+                  } else {
+                    // Look for smaller values that might be raw scores to convert
+                    const rawQA = numericValues.filter(v => v.value >= 1 && v.value <= 30);
+                    if (rawQA.length > 2) { // Take third value if available
+                      qaWA = (rawQA[2].value / 30) * 20; // Convert assuming QA is out of 30
+                      console.log(`  Assigned QA: ${qaWA.toFixed(1)} (converted from raw score ${rawQA[2].value})`);
+                    } else if (rawQA.length > 0) {
+                      qaWA = (rawQA[0].value / 30) * 20;
+                      console.log(`  Assigned QA: ${qaWA.toFixed(1)} (converted from raw score ${rawQA[0].value})`);
+                    }
+                  }
+                  if (finalCandidates.length > 0) {
+                    finalGrade = finalCandidates[0].value;
+                    console.log(`  Assigned Final: ${finalGrade} from column ${finalCandidates[0].column}`);
+                  }
+                  
+                  // If still no final grade, use the highest value as final grade
+                  if (finalGrade === 0 && numericValues.length > 0) {
+                    const highestValue = Math.max(...numericValues.map(v => v.value));
+                    if (highestValue >= 50) {
+                      finalGrade = highestValue;
+                      console.log(`  Using highest value as final grade: ${finalGrade}`);
+                    }
                   }
                 }
               }
               
-              console.log(`Extracted grades for ${subject}: WW WA=${wwWA}, PT WA=${ptWA}, QA WA=${qaWA}, Quarterly Grade=${finalGrade}`);
-              console.log(`Raw row data:`, studentRow);
+              console.log(`Final extracted grades for ${subject}:`);
+              console.log(`  WW: ${wwWA}, PT: ${ptWA}, QA: ${qaWA}, Final: ${finalGrade}`);
               
-              // Include if we have any meaningful data (lowered threshold)
+              // Accept data if we have ANY meaningful values
               if (wwWA >= 0 || ptWA >= 0 || qaWA >= 0 || finalGrade >= 0) {
                 totalWW += wwWA;
                 totalPT += ptWA;
@@ -588,17 +652,17 @@
                   pt: ptWA,
                   qa: qaWA,
                   grade: finalGrade,
-                  studentName: studentRow[0] || 'Unknown',
+                  studentName: studentRow[0] ? studentRow[0].toString() : 'Unknown',
                   rowIndex: rowIndex,
-                  rawData: studentRow // Show complete row for debugging
+                  rawData: studentRow.slice(0, Math.min(25, studentRow.length))
                 });
                 
                 console.log(`✅ Added subject data for ${subject}`);
               } else {
-                console.log(`❌ No meaningful data found for ${subject}`);
+                console.log(`❌ No meaningful numerical data found for ${subject}`);
               }
             } else {
-              console.log(`❌ No valid student row found for ${subject} or insufficient columns`);
+              console.log(`❌ No valid student row found for ${subject} or row too short (length: ${studentRow ? studentRow.length : 0})`);
             }
           }
         });
@@ -612,26 +676,21 @@
           Quarter: ${quarter}<br>
           Subjects Found: ${subjects.join(', ')}<br>
           Subject Count with Data: ${subjectCount}<br>
-          LocalStorage Keys: ${Object.keys(localStorage).filter(k => k.startsWith('grades-')).join(', ')}<br>
-          Subject Data: ${JSON.stringify(subjectData.map(s => ({
-            name: s.name, 
-            ww: s.ww,
-            pt: s.pt,
-            qa: s.qa,
-            grade: s.grade, 
-            studentName: s.studentName,
-            rowIndex: s.rowIndex,
-            rawData: s.rawData
-          })), null, 2)}
+          LocalStorage Keys: ${Object.keys(localStorage).filter(k => k.startsWith('grades-')).join(', ')}<br><br>
+          <strong>Subject Data Details:</strong><br>
+          ${subjectData.map(s => 
+            `${s.name}: WW=${s.ww}, PT=${s.pt}, QA=${s.qa}, Final=${s.grade} (Student: ${s.studentName}, Row: ${s.rowIndex})`
+          ).join('<br>')}
         `;
 
         if (subjectCount > 0) {
+          // Calculate averages
           const avgWW = (totalWW / subjectCount).toFixed(1);
           const avgPT = (totalPT / subjectCount).toFixed(1);
           const avgQA = (totalQA / subjectCount).toFixed(1);
           const avgGrade = (totalGrade / subjectCount).toFixed(1);
 
-          console.log(`Averages: WW=${avgWW}, PT=${avgPT}, QA=${avgQA}, Grade=${avgGrade}`);
+          console.log(`Calculated Averages: WW=${avgWW}, PT=${avgPT}, QA=${avgQA}, Grade=${avgGrade}`);
 
           updateStatsCards(avgWW, avgPT, avgQA, avgGrade);
           updateChart(avgWW, avgPT, avgQA);
@@ -662,8 +721,8 @@
           data: {
             labels: ["Written Works (30%)", "Performance Tasks (50%)", "Quarterly Assessment (20%)"],
             datasets: [{
-              label: "Overall Performance",
-              data: [ww, pt, qa],
+              label: "Performance Distribution",
+              data: [parseFloat(ww), parseFloat(pt), parseFloat(qa)],
               backgroundColor: [
                 "#3498db",
                 "#2ecc71", 
