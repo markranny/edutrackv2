@@ -14,6 +14,15 @@ struct User {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct StudentInfo {
+    id: i32,
+    email: String,
+    firstname: String,
+    lastname: String,
+    role: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct LoginRequest {
     email: String,
     password: String,
@@ -49,6 +58,19 @@ struct UserProfile {
     firstname: Option<String>,
     lastname: Option<String>,
     role: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct GradeRecord {
+    student_id: i32,
+    student_email: String,
+    subject: String,
+    quarter: String,
+    written_works: Vec<f64>,
+    performance_tasks: Vec<f64>,
+    quarterly_assessment: f64,
+    final_grade: f64,
+    created_at: String,
 }
 
 // Database connection wrapper
@@ -100,9 +122,230 @@ fn init_database() -> Result<Connection> {
         conn.execute("ALTER TABLE users ADD COLUMN lastname TEXT", [])?;
     }
 
+    // Create grades table for storing student grades
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS grades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            student_email TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            quarter TEXT NOT NULL,
+            written_works TEXT, -- JSON array
+            performance_tasks TEXT, -- JSON array
+            quarterly_assessment REAL,
+            final_grade REAL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (student_id) REFERENCES users (id),
+            UNIQUE(student_email, subject, quarter)
+        )",
+        [],
+    )?;
+
     Ok(conn)
 }
 
+#[tauri::command]
+async fn get_all_students(db: State<'_, DbConnection>) -> Result<Vec<StudentInfo>, String> {
+    let conn = db.0.lock().map_err(|_| "Database lock error")?;
+    
+    let mut stmt = conn.prepare(
+        "SELECT id, email, firstname, lastname, role FROM users WHERE role = 'student' ORDER BY firstname, lastname"
+    ).map_err(|e| format!("Database error: {}", e))?;
+    
+    let student_iter = stmt.query_map([], |row| {
+        Ok(StudentInfo {
+            id: row.get(0)?,
+            email: row.get(1)?,
+            firstname: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
+            lastname: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+            role: row.get(4)?,
+        })
+    }).map_err(|e| format!("Database error: {}", e))?;
+
+    let mut students = Vec::new();
+    for student in student_iter {
+        match student {
+            Ok(s) => students.push(s),
+            Err(e) => return Err(format!("Error processing student: {}", e)),
+        }
+    }
+
+    Ok(students)
+}
+
+#[tauri::command]
+async fn verify_student_access(email: String, db: State<'_, DbConnection>) -> Result<bool, String> {
+    let conn = db.0.lock().map_err(|_| "Database lock error")?;
+    
+    // Check if user exists and is a student
+    let mut stmt = conn.prepare("SELECT role FROM users WHERE email = ? AND role = 'student'")
+        .map_err(|e| format!("Database error: {}", e))?;
+    
+    let exists = stmt.exists([&email])
+        .map_err(|e| format!("Database error: {}", e))?;
+
+    Ok(exists)
+}
+
+#[tauri::command]
+async fn save_student_grades(
+    student_email: String,
+    subject: String,
+    quarter: String,
+    written_works: Vec<f64>,
+    performance_tasks: Vec<f64>,
+    quarterly_assessment: f64,
+    final_grade: f64,
+    db: State<'_, DbConnection>
+) -> Result<String, String> {
+    let conn = db.0.lock().map_err(|_| "Database lock error")?;
+    
+    // First, get the student ID
+    let mut stmt = conn.prepare("SELECT id FROM users WHERE email = ? AND role = 'student'")
+        .map_err(|e| format!("Database error: {}", e))?;
+    
+    let student_id: i32 = stmt.query_row([&student_email], |row| {
+        Ok(row.get(0)?)
+    }).map_err(|_| "Student not found")?;
+
+    // Convert arrays to JSON strings
+    let written_works_json = serde_json::to_string(&written_works)
+        .map_err(|_| "Failed to serialize written works")?;
+    let performance_tasks_json = serde_json::to_string(&performance_tasks)
+        .map_err(|_| "Failed to serialize performance tasks")?;
+
+    // Insert or update grades
+    conn.execute(
+        "INSERT OR REPLACE INTO grades 
+         (student_id, student_email, subject, quarter, written_works, performance_tasks, quarterly_assessment, final_grade, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, CURRENT_TIMESTAMP)",
+        [
+            &student_id.to_string(),
+            &student_email,
+            &subject,
+            &quarter,
+            &written_works_json,
+            &performance_tasks_json,
+            &quarterly_assessment.to_string(),
+            &final_grade.to_string(),
+        ],
+    ).map_err(|e| format!("Failed to save grades: {}", e))?;
+
+    Ok("Grades saved successfully".to_string())
+}
+
+#[tauri::command]
+async fn get_student_grades(
+    student_email: String,
+    subject: Option<String>,
+    quarter: Option<String>,
+    db: State<'_, DbConnection>
+) -> Result<Vec<GradeRecord>, String> {
+    let conn = db.0.lock().map_err(|_| "Database lock error")?;
+    
+    let mut query = "SELECT student_id, student_email, subject, quarter, written_works, performance_tasks, quarterly_assessment, final_grade, created_at FROM grades WHERE student_email = ?".to_string();
+    let mut params: Vec<String> = vec![student_email];
+    
+    if let Some(subj) = subject {
+        query.push_str(" AND subject = ?");
+        params.push(subj);
+    }
+    
+    if let Some(qtr) = quarter {
+        query.push_str(" AND quarter = ?");
+        params.push(qtr);
+    }
+    
+    query.push_str(" ORDER BY subject, quarter");
+    
+    let mut stmt = conn.prepare(&query)
+        .map_err(|e| format!("Database error: {}", e))?;
+    
+    let grade_iter = stmt.query_map(rusqlite::params_from_iter(params.iter()), |row| {
+        let written_works_json: String = row.get(4)?;
+        let performance_tasks_json: String = row.get(5)?;
+        
+        let written_works: Vec<f64> = serde_json::from_str(&written_works_json)
+            .unwrap_or_default();
+        let performance_tasks: Vec<f64> = serde_json::from_str(&performance_tasks_json)
+            .unwrap_or_default();
+        
+        Ok(GradeRecord {
+            student_id: row.get(0)?,
+            student_email: row.get(1)?,
+            subject: row.get(2)?,
+            quarter: row.get(3)?,
+            written_works,
+            performance_tasks,
+            quarterly_assessment: row.get(6)?,
+            final_grade: row.get(7)?,
+            created_at: row.get(8)?,
+        })
+    }).map_err(|e| format!("Database error: {}", e))?;
+
+    let mut grades = Vec::new();
+    for grade in grade_iter {
+        match grade {
+            Ok(g) => grades.push(g),
+            Err(e) => return Err(format!("Error processing grade: {}", e)),
+        }
+    }
+
+    Ok(grades)
+}
+
+#[tauri::command]
+async fn get_student_subjects(student_email: String, db: State<'_, DbConnection>) -> Result<Vec<String>, String> {
+    let conn = db.0.lock().map_err(|_| "Database lock error")?;
+    
+    let mut stmt = conn.prepare("SELECT DISTINCT subject FROM grades WHERE student_email = ? ORDER BY subject")
+        .map_err(|e| format!("Database error: {}", e))?;
+    
+    let subject_iter = stmt.query_map([&student_email], |row| {
+        Ok(row.get::<_, String>(0)?)
+    }).map_err(|e| format!("Database error: {}", e))?;
+
+    let mut subjects = Vec::new();
+    for subject in subject_iter {
+        match subject {
+            Ok(s) => subjects.push(s),
+            Err(e) => return Err(format!("Error processing subject: {}", e)),
+        }
+    }
+
+    Ok(subjects)
+}
+
+#[tauri::command]
+async fn delete_student_grades(
+    student_email: String,
+    subject: Option<String>,
+    quarter: Option<String>,
+    db: State<'_, DbConnection>
+) -> Result<String, String> {
+    let conn = db.0.lock().map_err(|_| "Database lock error")?;
+    
+    let mut query = "DELETE FROM grades WHERE student_email = ?".to_string();
+    let mut params: Vec<String> = vec![student_email];
+    
+    if let Some(subj) = subject {
+        query.push_str(" AND subject = ?");
+        params.push(subj);
+    }
+    
+    if let Some(qtr) = quarter {
+        query.push_str(" AND quarter = ?");
+        params.push(qtr);
+    }
+    
+    let affected_rows = conn.execute(&query, rusqlite::params_from_iter(params.iter()))
+        .map_err(|e| format!("Failed to delete grades: {}", e))?;
+
+    Ok(format!("Deleted {} grade record(s)", affected_rows))
+}
+
+// Keep all the existing functions (tauri_login, tauri_register, etc.)
 #[tauri::command]
 async fn tauri_login(payload: LoginRequest, db: State<'_, DbConnection>) -> Result<LoginResponse, String> {
     let conn = db.0.lock().map_err(|_| "Database lock error")?;
@@ -325,7 +568,13 @@ pub fn run() {
             tauri_forgot_password,
             reset_password,
             get_user_profile,
-            change_password
+            change_password,
+            get_all_students,
+            verify_student_access,
+            save_student_grades,
+            get_student_grades,
+            get_student_subjects,
+            delete_student_grades
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

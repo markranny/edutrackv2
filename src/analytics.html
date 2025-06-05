@@ -63,6 +63,24 @@
       border-bottom: 2px solid #dad9d9;
     }
 
+    .verification-status {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .verified {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .not-verified {
+      background-color: #e74c3c;
+      color: white;
+    }
+
     .sidebar::after {
       content: '';
       position: absolute;
@@ -157,6 +175,49 @@
       font-weight: bold;
       border-bottom: 2px solid #525252;
       padding-bottom: 8px;
+    }
+
+    .access-denied {
+      text-align: center;
+      padding: 60px 20px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      border: 2px solid #e74c3c;
+    }
+
+    .access-denied i {
+      font-size: 80px;
+      color: #e74c3c;
+      margin-bottom: 20px;
+    }
+
+    .access-denied h2 {
+      color: #e74c3c;
+      margin-bottom: 15px;
+    }
+
+    .access-denied p {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .login-btn {
+      background: #3498db;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.3s;
+    }
+
+    .login-btn:hover {
+      background: #2980b9;
     }
 
     .quarter-selector {
@@ -266,6 +327,22 @@
       font-size: 18px;
       color: #2ecc71;
     }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 18px;
+    }
+
+    .error-message {
+      background: #e74c3c;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -273,11 +350,14 @@
     <aside class="sidebar">
       <div class="profile">
         <img src="assets/student1.png" alt="Student" />
-        <h3>Student</h3>
+        <h3 id="studentName">Student</h3>
+        <div id="verificationStatus" class="verification-status">
+          <i class="fas fa-spinner fa-spin"></i> Verifying...
+        </div>
       </div>
       <nav>
         <a href="marking.html" class="nav-item">Markings</a>
-        <button class="progress-btn">Progress</button>
+        <button class="progress-btn nav-item">Progress</button>
       </nav>
       <div class="logout">
         <a href="logout.html" class="logout-btn">
@@ -287,58 +367,65 @@
     </aside>
 
     <main class="main-content">
-      <h1>Overall Academic Performance</h1>
-      
-      <div class="quarter-selector">
-        <label for="quarterSelect">Select Quarter: </label>
-        <select id="quarterSelect">
-          <option value="1st">1st Quarter</option>
-          <option value="2nd">2nd Quarter</option>
-          <option value="3rd">3rd Quarter</option>
-          <option value="4th">4th Quarter</option>
-        </select>
+      <div id="loadingContent" class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading your academic performance...
       </div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>Written Works</h3>
-          <div class="stat-value" id="wwAverage">0</div>
-          <div class="stat-label">Average Score (30%)</div>
-        </div>
-        <div class="stat-card">
-          <h3>Performance Tasks</h3>
-          <div class="stat-value" id="ptAverage">0</div>
-          <div class="stat-label">Average Score (50%)</div>
-        </div>
-        <div class="stat-card">
-          <h3>Quarterly Assessment</h3>
-          <div class="stat-value" id="qaAverage">0</div>
-          <div class="stat-label">Average Score (20%)</div>
-        </div>
-        <div class="stat-card">
-          <h3>Overall Grade</h3>
-          <div class="stat-value" id="overallGrade">0</div>
-          <div class="stat-label">Final Grade (100%)</div>
-        </div>
+      <div id="accessDeniedContent" class="access-denied" style="display: none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h2>Access Restricted</h2>
+        <p>We couldn't verify your student registration in our system. Analytics are only available to registered students with valid academic records.</p>
+        <p>If you believe this is an error, please contact your teacher or school administrator.</p>
+        <a href="login.html" class="login-btn">Return to Login</a>
       </div>
 
-      <div class="chart-container">
-        <div class="chart-wrapper">
-          <canvas id="overallChart"></canvas>
+      <div id="analyticsContent" style="display: none;">
+        <h1>Overall Academic Performance</h1>
+        
+        <div class="quarter-selector">
+          <label for="quarterSelect">Select Quarter: </label>
+          <select id="quarterSelect">
+            <option value="1st">1st Quarter</option>
+            <option value="2nd">2nd Quarter</option>
+            <option value="3rd">3rd Quarter</option>
+            <option value="4th">4th Quarter</option>
+          </select>
         </div>
-      </div>
 
-      <div class="performance-summary">
-        <h3>Subject Breakdown</h3>
-        <div class="subject-list" id="subjectList">
-          <!-- Subject performance will be populated here -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Written Works</h3>
+            <div class="stat-value" id="wwAverage">0</div>
+            <div class="stat-label">Average Score (30%)</div>
+          </div>
+          <div class="stat-card">
+            <h3>Performance Tasks</h3>
+            <div class="stat-value" id="ptAverage">0</div>
+            <div class="stat-label">Average Score (50%)</div>
+          </div>
+          <div class="stat-card">
+            <h3>Quarterly Assessment</h3>
+            <div class="stat-value" id="qaAverage">0</div>
+            <div class="stat-label">Average Score (20%)</div>
+          </div>
+          <div class="stat-card">
+            <h3>Overall Grade</h3>
+            <div class="stat-value" id="overallGrade">0</div>
+            <div class="stat-label">Final Grade (100%)</div>
+          </div>
         </div>
-      </div>
 
-      <div class="performance-summary" style="margin-top: 15px;">
-        <h3>Debug Information</h3>
-        <div id="debugInfo" style="font-size: 12px; color: #ccc; font-family: monospace;">
-          <!-- Debug info will appear here -->
+        <div class="chart-container">
+          <div class="chart-wrapper">
+            <canvas id="overallChart"></canvas>
+          </div>
+        </div>
+
+        <div class="performance-summary">
+          <h3>Subject Breakdown</h3>
+          <div class="subject-list" id="subjectList">
+            <!-- Subject performance will be populated here -->
+          </div>
         </div>
       </div>
     </main>
@@ -346,521 +433,370 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    let currentStudent = null;
+    let isVerified = false;
+
     document.addEventListener("DOMContentLoaded", function () {
+      // Check if user is logged in and is a student
+      verifyStudentAccess();
+
       const profileDiv = document.querySelector(".profile");
       if (profileDiv) {
         profileDiv.addEventListener("click", function () {
           window.location.href = "profiles.html";
         });
       }
+    });
 
+    async function verifyStudentAccess() {
+      try {
+        // Get current user from session storage
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        
+        if (!currentUser.email || currentUser.role !== 'student') {
+          showAccessDenied('Please log in as a student to access analytics.');
+          return;
+        }
+
+        // Update student name display
+        const studentName = currentUser.firstname ? 
+          `${currentUser.firstname} ${currentUser.lastname || ''}`.trim() : 'Student';
+        document.getElementById('studentName').textContent = studentName;
+
+        // Verify student has grades in the system
+        const hasGrades = await checkStudentGrades(currentUser.email);
+        
+        if (!hasGrades) {
+          showAccessDenied('No academic records found. Please contact your teacher if you believe this is an error.');
+          return;
+        }
+
+        // Student is verified
+        currentStudent = currentUser;
+        isVerified = true;
+        showVerificationStatus(true, studentName);
+        showAnalyticsContent();
+        loadPerformanceData();
+
+      } catch (error) {
+        console.error('Verification error:', error);
+        showAccessDenied('Unable to verify student access. Please try again later.');
+      }
+    }
+
+    function showVerificationStatus(verified, name) {
+      const statusDiv = document.getElementById('verificationStatus');
+      if (verified) {
+        statusDiv.className = 'verification-status verified';
+        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Verified Student';
+      } else {
+        statusDiv.className = 'verification-status not-verified';
+        statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Not Verified';
+      }
+    }
+
+    function showAccessDenied(message) {
+      document.getElementById('loadingContent').style.display = 'none';
+      document.getElementById('analyticsContent').style.display = 'none';
+      document.getElementById('accessDeniedContent').style.display = 'block';
+      
+      if (message) {
+        document.querySelector('#accessDeniedContent p').textContent = message;
+      }
+      
+      showVerificationStatus(false);
+    }
+
+    function showAnalyticsContent() {
+      document.getElementById('loadingContent').style.display = 'none';
+      document.getElementById('accessDeniedContent').style.display = 'none';
+      document.getElementById('analyticsContent').style.display = 'block';
+      
+      // Add quarter change listener
       const quarterSelect = document.getElementById('quarterSelect');
       quarterSelect.addEventListener('change', loadPerformanceData);
+    }
 
-      // Load initial data
-      loadPerformanceData();
-
-      function getSubjects() {
-        // Method 1: Try to get subjects from schedule
-        const scheduleRaw = localStorage.getItem('schedule');
-        if (scheduleRaw) {
-          const subjects = [...new Set(JSON.parse(scheduleRaw)
-            .map(s => s.subject)
-            .filter(Boolean))].sort((a, b) => a.localeCompare(b));
-          if (subjects.length > 0) return subjects;
+    async function checkStudentGrades(studentEmail) {
+      try {
+        // First check backend for grades
+        const grades = await window.__TAURI__.core.invoke("get_student_grades", {
+          studentEmail: studentEmail,
+          subject: null,
+          quarter: null
+        });
+        
+        if (grades && grades.length > 0) {
+          return true;
         }
-        
-        // Method 2: Scan localStorage for any grade data keys
-        const gradeSubjects = [];
-        const quarters = ['1st', '2nd', '3rd', '4th'];
-        
-        for (let key in localStorage) {
-          if (key.startsWith('grades-')) {
-            const parts = key.split('-');
-            if (parts.length >= 3) {
-              const subject = parts.slice(1, -1).join('-');
-              if (subject && quarters.includes(parts[parts.length - 1])) {
-                gradeSubjects.push(subject);
-              }
-            }
-          }
-        }
-        
-        return [...new Set(gradeSubjects)].sort((a, b) => a.localeCompare(b));
+      } catch (error) {
+        console.error('Error checking backend grades:', error);
       }
-
-      function loadPerformanceData() {
-        const quarter = quarterSelect.value;
-        const subjects = getSubjects();
-        
-        console.log(`Loading data for quarter: ${quarter}`);
-        console.log(`Found subjects:`, subjects);
-        
-        if (subjects.length === 0) {
-          console.log('No subjects found');
-          displayNoData();
-          return;
-        }
-
-        let totalWW = 0, totalPT = 0, totalQA = 0, totalGrade = 0;
-        let subjectCount = 0;
-        const subjectData = [];
-
-        subjects.forEach(subject => {
-          const key = `grades-${subject}-${quarter}`;
-          const data = JSON.parse(localStorage.getItem(key) || '[]');
-          
-          console.log(`Checking subject: ${subject}, key: ${key}, data length: ${data.length}`);
-          
-          if (data.length > 0) {
-            console.log(`Full data array for ${subject}:`, data);
-            
-            // Get current user info
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
-            const userFirstName = (currentUser.firstname || '').toLowerCase();
-            const userLastName = (currentUser.lastname || '').toLowerCase();
-            const userFullName = `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim().toLowerCase();
-            
-            console.log(`Looking for user: "${userFullName}"`);
-            console.log(`User first name: "${userFirstName}", last name: "${userLastName}"`);
-            
-            // Look for student data
-            let studentRow = null;
-            let rowIndex = -1;
-            
-            // Enhanced debugging - show all rows first
-            data.forEach((row, index) => {
-              console.log(`Row ${index}:`, row);
-              if (row && row.length > 0) {
-                console.log(`  Name in row ${index}: "${row[0]}" (length: ${row.length})`);
-              }
-            });
-            
-            // Strategy 1: Find by exact name match
-            if (userFullName) {
-              data.forEach((row, index) => {
-                if (row && row[0]) {
-                  const rowName = row[0].toString().trim().toLowerCase();
-                  console.log(`Comparing "${rowName}" with "${userFullName}"`);
-                  if (rowName === userFullName || 
-                      rowName.includes(userFullName) ||
-                      userFullName.includes(rowName) ||
-                      (userFirstName && rowName.includes(userFirstName)) ||
-                      (userLastName && rowName.includes(userLastName))) {
-                    console.log(`✅ Found name match at row ${index}`);
-                    studentRow = row;
-                    rowIndex = index;
-                    return; // Exit loop once found
-                  }
-                }
-              });
-            }
-            
-            // Strategy 2: If no name match, look for any row with student data
-            if (!studentRow) {
-              console.log('No name match found, looking for any row with student data...');
-              data.forEach((row, index) => {
-                if (row && row.length >= 5 && row[0] && 
-                    row[0].toString().trim() !== '' && 
-                    row[0].toString().toLowerCase() !== 'select student' &&
-                    row[0].toString().toLowerCase() !== 'name' &&
-                    !row[0].toString().toLowerCase().includes('students') &&
-                    !row[0].toString().toLowerCase().includes('total') &&
-                    row[0].toString().toLowerCase() !== 'average') {
-                  
-                  console.log(`Checking row ${index} for numerical data:`, row);
-                  
-                  // Check multiple possible column positions for grade data
-                  const possibleGradeColumns = [7, 15, 18, 21, 22, 23, 24]; // Check various columns
-                  let hasNumericalData = false;
-                  
-                  possibleGradeColumns.forEach(col => {
-                    if (row[col] !== undefined && row[col] !== null && row[col] !== '') {
-                      const val = parseFloat(row[col]);
-                      if (!isNaN(val) && val > 0) {
-                        console.log(`  Found numerical data in column ${col}: ${val}`);
-                        hasNumericalData = true;
-                      }
-                    }
-                  });
-                  
-                  if (hasNumericalData && !studentRow) {
-                    console.log(`✅ Using row ${index} as it has numerical grade data`);
-                    studentRow = row;
-                    rowIndex = index;
-                    return; // Exit loop once found
-                  }
-                }
-              });
-            }
-            
-            // Strategy 3: If still no data, take the first non-empty row
-            if (!studentRow && data.length > 1) {
-              console.log('Still no match, taking first available non-header row...');
-              for (let i = 1; i < data.length; i++) { // Start from index 1 to skip potential header
-                if (data[i] && data[i][0] && data[i][0].toString().trim() !== '') {
-                  console.log(`✅ Using fallback row ${i}:`, data[i]);
-                  studentRow = data[i];
-                  rowIndex = i;
-                  break;
-                }
-              }
-            }
-            
-            console.log(`Final student row for ${subject}:`, studentRow);
-            console.log(`Row index: ${rowIndex}`);
-            
-            if (studentRow && studentRow.length >= 5) {
-              // Try to extract grades from multiple possible column positions
-              // The exact columns might vary depending on the data structure
-              
-              let wwWA = 0, ptWA = 0, qaWA = 0, finalGrade = 0;
-              
-              // Method 1: Try standard column positions for weighted averages
-              if (studentRow.length >= 22) {
-                // Based on the typical grade structure, the WA (Weighted Average) columns are:
-                // Written Works WA is usually around column 7
-                // Performance Tasks WA is usually around column 15  
-                // Quarterly Assessment WA is usually around column 18
-                // Final Grade is usually the last meaningful column
-                
-                wwWA = parseFloat(studentRow[7]) || 0;    // Written Works WA (should be ~30% weight)
-                ptWA = parseFloat(studentRow[15]) || 0;   // Performance Tasks WA (should be ~50% weight)  
-                qaWA = parseFloat(studentRow[18]) || 0;   // Quarterly Assessment WA (should be ~20% weight)
-                finalGrade = parseFloat(studentRow[21]) || 0; // Final Grade (should be ~100%)
-                
-                console.log(`Standard extraction attempt for ${subject}:`);
-                console.log(`  WW WA (col 7): ${wwWA}`);
-                console.log(`  PT WA (col 15): ${ptWA}`);
-                console.log(`  QA WA (col 18): ${qaWA}`);
-                console.log(`  Final (col 21): ${finalGrade}`);
-                
-                // If these values seem too low (like 5,5,5 instead of weighted averages),
-                // they might be raw scores that need to be converted to weighted averages
-                if (wwWA > 0 && wwWA <= 10 && ptWA > 0 && ptWA <= 10 && qaWA > 0 && qaWA <= 10) {
-                  console.log(`Values seem to be raw scores, converting to weighted averages...`);
-                  // Assuming these are raw scores out of 5, convert to weighted averages
-                  // WW: (score/5) * 30 = weighted average for 30%
-                  // PT: (score/5) * 50 = weighted average for 50%  
-                  // QA: (score/30) * 20 = weighted average for 20% (QA is usually out of 30)
-                  wwWA = (wwWA / 5) * 30;
-                  ptWA = (ptWA / 5) * 50;
-                  qaWA = (qaWA / 30) * 20; // QA typically scored out of 30
-                  
-                  console.log(`Converted to weighted averages:`);
-                  console.log(`  WW WA: ${wwWA.toFixed(1)}`);
-                  console.log(`  PT WA: ${ptWA.toFixed(1)}`);
-                  console.log(`  QA WA: ${qaWA.toFixed(1)}`);
-                }
-              }
-              
-              // Method 2: If standard columns are empty, scan for any numerical data
-              if (wwWA === 0 && ptWA === 0 && qaWA === 0 && finalGrade === 0) {
-                console.log(`Standard columns empty, scanning all columns for numerical data...`);
-                const numericValues = [];
-                
-                for (let i = 1; i < studentRow.length; i++) {
-                  const val = parseFloat(studentRow[i]);
-                  if (!isNaN(val) && val > 0) {
-                    numericValues.push({column: i, value: val});
-                    console.log(`  Found value ${val} at column ${i}`);
-                  }
-                }
-                
-                // If we found numeric values, try to map them intelligently
-                if (numericValues.length > 0) {
-                  console.log(`Found ${numericValues.length} numeric values, attempting to map...`);
-                  
-                  // Try to find values that look like weighted averages
-                  // WW should be around 0-30, PT around 0-50, QA around 0-20, Final around 70-100
-                  const wwCandidates = numericValues.filter(v => v.value >= 15 && v.value <= 35);
-                  const ptCandidates = numericValues.filter(v => v.value >= 25 && v.value <= 55);
-                  const qaCandidates = numericValues.filter(v => v.value >= 10 && v.value <= 25);
-                  const finalCandidates = numericValues.filter(v => v.value >= 70 && v.value <= 100);
-                  
-                  if (wwCandidates.length > 0) {
-                    wwWA = wwCandidates[0].value;
-                    console.log(`  Assigned WW: ${wwWA} from column ${wwCandidates[0].column}`);
-                  } else {
-                    // Look for smaller values that might be raw scores to convert
-                    const rawWW = numericValues.filter(v => v.value >= 1 && v.value <= 5);
-                    if (rawWW.length > 0) {
-                      wwWA = (rawWW[0].value / 5) * 30; // Convert to weighted average
-                      console.log(`  Assigned WW: ${wwWA.toFixed(1)} (converted from raw score ${rawWW[0].value})`);
-                    }
-                  }
-                  
-                  if (ptCandidates.length > 0) {
-                    ptWA = ptCandidates[0].value;
-                    console.log(`  Assigned PT: ${ptWA} from column ${ptCandidates[0].column}`);
-                  } else {
-                    // Look for smaller values that might be raw scores to convert
-                    const rawPT = numericValues.filter(v => v.value >= 1 && v.value <= 5);
-                    if (rawPT.length > 1) { // Take second value if available
-                      ptWA = (rawPT[1].value / 5) * 50; // Convert to weighted average
-                      console.log(`  Assigned PT: ${ptWA.toFixed(1)} (converted from raw score ${rawPT[1].value})`);
-                    } else if (rawPT.length > 0) {
-                      ptWA = (rawPT[0].value / 5) * 50;
-                      console.log(`  Assigned PT: ${ptWA.toFixed(1)} (converted from raw score ${rawPT[0].value})`);
-                    }
-                  }
-                  
-                  if (qaCandidates.length > 0) {
-                    qaWA = qaCandidates[0].value;
-                    console.log(`  Assigned QA: ${qaWA} from column ${qaCandidates[0].column}`);
-                  } else {
-                    // Look for smaller values that might be raw scores to convert
-                    const rawQA = numericValues.filter(v => v.value >= 1 && v.value <= 30);
-                    if (rawQA.length > 2) { // Take third value if available
-                      qaWA = (rawQA[2].value / 30) * 20; // Convert assuming QA is out of 30
-                      console.log(`  Assigned QA: ${qaWA.toFixed(1)} (converted from raw score ${rawQA[2].value})`);
-                    } else if (rawQA.length > 0) {
-                      qaWA = (rawQA[0].value / 30) * 20;
-                      console.log(`  Assigned QA: ${qaWA.toFixed(1)} (converted from raw score ${rawQA[0].value})`);
-                    }
-                  }
-                  if (finalCandidates.length > 0) {
-                    finalGrade = finalCandidates[0].value;
-                    console.log(`  Assigned Final: ${finalGrade} from column ${finalCandidates[0].column}`);
-                  }
-                  
-                  // If still no final grade, use the highest value as final grade
-                  if (finalGrade === 0 && numericValues.length > 0) {
-                    const highestValue = Math.max(...numericValues.map(v => v.value));
-                    if (highestValue >= 50) {
-                      finalGrade = highestValue;
-                      console.log(`  Using highest value as final grade: ${finalGrade}`);
-                    }
-                  }
-                }
-              }
-              
-              console.log(`Final extracted grades for ${subject}:`);
-              console.log(`  WW: ${wwWA}, PT: ${ptWA}, QA: ${qaWA}, Final: ${finalGrade}`);
-              
-              // Accept data if we have ANY meaningful values
-              if (wwWA >= 0 || ptWA >= 0 || qaWA >= 0 || finalGrade >= 0) {
-                totalWW += wwWA;
-                totalPT += ptWA;
-                totalQA += qaWA;
-                totalGrade += finalGrade;
-                subjectCount++;
-
-                subjectData.push({
-                  name: subject,
-                  ww: wwWA,
-                  pt: ptWA,
-                  qa: qaWA,
-                  grade: finalGrade,
-                  studentName: studentRow[0] ? studentRow[0].toString() : 'Unknown',
-                  rowIndex: rowIndex,
-                  rawData: studentRow.slice(0, Math.min(25, studentRow.length))
-                });
-                
-                console.log(`✅ Added subject data for ${subject}`);
-              } else {
-                console.log(`❌ No meaningful numerical data found for ${subject}`);
-              }
-            } else {
-              console.log(`❌ No valid student row found for ${subject} or row too short (length: ${studentRow ? studentRow.length : 0})`);
-            }
+      
+      // Fallback: check localStorage
+      const quarters = ['1st', '2nd', '3rd', '4th'];
+      const subjects = getAvailableSubjects();
+      
+      for (const quarter of quarters) {
+        for (const subject of subjects) {
+          const key = `grades-${studentEmail}-${subject}-${quarter}`;
+          if (localStorage.getItem(key)) {
+            return true;
           }
+        }
+      }
+      
+      // Also check student_grades format
+      const studentGradesKey = `student_grades_${studentEmail}`;
+      const studentGrades = localStorage.getItem(studentGradesKey);
+      if (studentGrades) {
+        const grades = JSON.parse(studentGrades);
+        return Object.keys(grades).length > 0;
+      }
+      
+      return false;
+    }
+
+    function getAvailableSubjects() {
+      const scheduleRaw = localStorage.getItem('schedule');
+      if (!scheduleRaw) return ['Mathematics', 'English', 'Science', 'History', 'GMRC'];
+      
+      return [...new Set(JSON.parse(scheduleRaw)
+        .map(s => s.subject)
+        .filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    }
+
+    async function loadPerformanceData() {
+      if (!isVerified || !currentStudent) return;
+
+      const quarter = document.getElementById('quarterSelect').value;
+      const subjects = getAvailableSubjects();
+      
+      console.log(`Loading data for ${currentStudent.email}, quarter: ${quarter}`);
+      
+      let totalWW = 0, totalPT = 0, totalQA = 0, totalGrade = 0;
+      let subjectCount = 0;
+      const subjectData = [];
+
+      try {
+        // Try to get grades from backend first
+        const backendGrades = await window.__TAURI__.core.invoke("get_student_grades", {
+          studentEmail: currentStudent.email,
+          subject: null,
+          quarter: quarter
         });
 
-        console.log(`Final totals: WW=${totalWW}, PT=${totalPT}, QA=${totalQA}, Grade=${totalGrade}, Count=${subjectCount}`);
+        if (backendGrades && backendGrades.length > 0) {
+          // Process backend grades
+          backendGrades.forEach(gradeRecord => {
+            if (gradeRecord.final_grade && gradeRecord.final_grade > 0) {
+              // Calculate component averages
+              const wwAvg = gradeRecord.written_works ? 
+                gradeRecord.written_works.reduce((a, b) => a + b, 0) / gradeRecord.written_works.length * 1.5 : 0;
+              const ptAvg = gradeRecord.performance_tasks ? 
+                gradeRecord.performance_tasks.reduce((a, b) => a + b, 0) / gradeRecord.performance_tasks.length * 2.5 : 0;
+              const qaScore = gradeRecord.quarterly_assessment * (20/30) || 0;
+              
+              totalWW += wwAvg;
+              totalPT += ptAvg;
+              totalQA += qaScore;
+              totalGrade += gradeRecord.final_grade;
+              subjectCount++;
 
-        // Update debug information
-        const debugInfo = document.getElementById('debugInfo');
-        debugInfo.innerHTML = `
-          Current User: ${JSON.stringify(JSON.parse(sessionStorage.getItem('currentUser') || '{}'))}<br>
-          Quarter: ${quarter}<br>
-          Subjects Found: ${subjects.join(', ')}<br>
-          Subject Count with Data: ${subjectCount}<br>
-          LocalStorage Keys: ${Object.keys(localStorage).filter(k => k.startsWith('grades-')).join(', ')}<br><br>
-          <strong>Subject Data Details:</strong><br>
-          ${subjectData.map(s => 
-            `${s.name}: WW=${s.ww}, PT=${s.pt}, QA=${s.qa}, Final=${s.grade} (Student: ${s.studentName}, Row: ${s.rowIndex})`
-          ).join('<br>')}
-        `;
-
-        if (subjectCount > 0) {
-          // Calculate averages
-          const avgWW = (totalWW / subjectCount).toFixed(1);
-          const avgPT = (totalPT / subjectCount).toFixed(1);
-          const avgQA = (totalQA / subjectCount).toFixed(1);
-          const avgGrade = (totalGrade / subjectCount).toFixed(1);
-
-          console.log(`Calculated Averages: WW=${avgWW}, PT=${avgPT}, QA=${avgQA}, Grade=${avgGrade}`);
-
-          updateStatsCards(avgWW, avgPT, avgQA, avgGrade);
-          updateChart(avgWW, avgPT, avgQA);
-          updateSubjectList(subjectData);
+              subjectData.push({
+                name: gradeRecord.subject,
+                ww: wwAvg,
+                pt: ptAvg,
+                qa: qaScore,
+                grade: gradeRecord.final_grade
+              });
+            }
+          });
         } else {
-          console.log('No valid data found');
-          displayNoData();
+          // Fallback to localStorage method
+          await loadFromLocalStorage();
         }
+      } catch (error) {
+        console.error('Error loading from backend:', error);
+        // Fallback to localStorage method
+        await loadFromLocalStorage();
       }
 
-      function updateStatsCards(ww, pt, qa, grade) {
-        document.getElementById('wwAverage').textContent = ww;
-        document.getElementById('ptAverage').textContent = pt;
-        document.getElementById('qaAverage').textContent = qa;
-        document.getElementById('overallGrade').textContent = grade;
-      }
+      async function loadFromLocalStorage() {
+        subjects.forEach(subject => {
+          const key = `grades-${currentStudent.email}-${subject}-${quarter}`;
+          const gradeData = JSON.parse(localStorage.getItem(key) || '{}');
+          
+          if (gradeData.finalGrade && gradeData.finalGrade > 0) {
+            // Calculate component averages
+            const wwAvg = gradeData.writtenWorks ? 
+              gradeData.writtenWorks.reduce((a, b) => a + b, 0) / gradeData.writtenWorks.length * 1.5 : 0;
+            const ptAvg = gradeData.performanceTasks ? 
+              gradeData.performanceTasks.reduce((a, b) => a + b, 0) / gradeData.performanceTasks.length * 2.5 : 0;
+            const qaScore = gradeData.quarterlyAssessment * (20/30) || 0;
+            
+            totalWW += wwAvg;
+            totalPT += ptAvg;
+            totalQA += qaScore;
+            totalGrade += gradeData.finalGrade;
+            subjectCount++;
 
-      function updateChart(ww, pt, qa) {
-        const ctx = document.getElementById("overallChart").getContext("2d");
-        
-        // Destroy existing chart if it exists
-        if (window.performanceChart) {
-          window.performanceChart.destroy();
-        }
-
-        window.performanceChart = new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: ["Written Works (30%)", "Performance Tasks (50%)", "Quarterly Assessment (20%)"],
-            datasets: [{
-              label: "Performance Distribution",
-              data: [parseFloat(ww), parseFloat(pt), parseFloat(qa)],
-              backgroundColor: [
-                "#3498db",
-                "#2ecc71", 
-                "#f1c40f"
-              ],
-              borderWidth: 2,
-              borderColor: "#394b5e"
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: "left",
-                labels: {
-                  color: "white",
-                  font: {
-                    size: 14,
-                    family: "Arial"
-                  },
-                  boxWidth: 30,
-                  padding: 20
-                }
-              },
-              tooltip: {
-                bodyColor: "white",
-                titleColor: "white",
-                bodyFont: {
-                  size: 12,
-                  family: "Arial"
-                },
-                titleFont: {
-                  size: 14,
-                  family: "Arial"
-                },
-                callbacks: {
-                  label: function(context) {
-                    return context.label + ': ' + context.parsed.toFixed(1) + ' points';
-                  }
-                }
-              },
-              title: {
-                display: true,
-                text: 'Performance Distribution',
-                color: "white",
-                font: {
-                  size: 16,
-                  family: "Arial"
-                },
-                padding: {
-                  top: 10,
-                  bottom: 20
-                }
-              }
-            }
+            subjectData.push({
+              name: subject,
+              ww: wwAvg,
+              pt: ptAvg,
+              qa: qaScore,
+              grade: gradeData.finalGrade
+            });
           }
         });
       }
 
-      function updateSubjectList(subjectData) {
-        const subjectList = document.getElementById('subjectList');
-        subjectList.innerHTML = '';
+      if (subjectCount > 0) {
+        const avgWW = (totalWW / subjectCount).toFixed(1);
+        const avgPT = (totalPT / subjectCount).toFixed(1);
+        const avgQA = (totalQA / subjectCount).toFixed(1);
+        const avgGrade = (totalGrade / subjectCount).toFixed(1);
 
-        if (subjectData.length === 0) {
-          subjectList.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No grade data available</div>';
-          return;
-        }
+        updateStatsCards(avgWW, avgPT, avgQA, avgGrade);
+        updateChart(avgWW, avgPT, avgQA);
+        updateSubjectList(subjectData);
+      } else {
+        displayNoData();
+      }
+    }
 
-        subjectData.forEach(subject => {
-          const subjectItem = document.createElement('div');
-          subjectItem.className = 'subject-item';
-          
-          const gradeColor = subject.grade >= 90 ? '#2ecc71' : 
-                            subject.grade >= 85 ? '#f39c12' : 
-                            subject.grade >= 80 ? '#f1c40f' : 
-                            subject.grade >= 75 ? '#e67e22' : '#e74c3c';
-          
-          subjectItem.innerHTML = `
-            <div class="subject-name">${subject.name}</div>
-            <div class="subject-grade" style="color: ${gradeColor}">${subject.grade.toFixed(1)}</div>
-            <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">
-              WW: ${subject.ww.toFixed(1)} | PT: ${subject.pt.toFixed(1)} | QA: ${subject.qa.toFixed(1)}
-            </div>
-            <div style="font-size: 10px; opacity: 0.6; margin-top: 3px;">
-              Student: ${subject.studentName}
-            </div>
-          `;
-          
-          subjectList.appendChild(subjectItem);
-        });
+    function updateStatsCards(ww, pt, qa, grade) {
+      document.getElementById('wwAverage').textContent = ww;
+      document.getElementById('ptAverage').textContent = pt;
+      document.getElementById('qaAverage').textContent = qa;
+      document.getElementById('overallGrade').textContent = grade;
+    }
+
+    function updateChart(ww, pt, qa) {
+      const ctx = document.getElementById("overallChart").getContext("2d");
+      
+      if (window.performanceChart) {
+        window.performanceChart.destroy();
       }
 
-      function displayNoData() {
-        document.getElementById('wwAverage').textContent = '0';
-        document.getElementById('ptAverage').textContent = '0';
-        document.getElementById('qaAverage').textContent = '0';
-        document.getElementById('overallGrade').textContent = '0';
-        
-        document.getElementById('subjectList').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No grade data available</div>';
-        
-        // Show empty chart
-        const ctx = document.getElementById("overallChart").getContext("2d");
-        if (window.performanceChart) {
-          window.performanceChart.destroy();
-        }
-        
-        window.performanceChart = new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: ["No Data Available"],
-            datasets: [{
-              data: [1],
-              backgroundColor: ["#95a5a6"],
-              borderWidth: 0
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: false
-              },
-              title: {
-                display: true,
-                text: 'No Performance Data Available',
+      window.performanceChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Written Works (30%)", "Performance Tasks (50%)", "Quarterly Assessment (20%)"],
+          datasets: [{
+            label: "Performance Distribution",
+            data: [parseFloat(ww), parseFloat(pt), parseFloat(qa)],
+            backgroundColor: ["#3498db", "#2ecc71", "#f1c40f"],
+            borderWidth: 2,
+            borderColor: "#394b5e"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "left",
+              labels: {
                 color: "white",
-                font: {
-                  size: 16,
-                  family: "Arial"
+                font: { size: 14, family: "Arial" },
+                boxWidth: 30,
+                padding: 20
+              }
+            },
+            tooltip: {
+              bodyColor: "white",
+              titleColor: "white",
+              bodyFont: { size: 12, family: "Arial" },
+              titleFont: { size: 14, family: "Arial" },
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ' + context.parsed.toFixed(1) + ' points';
                 }
               }
+            },
+            title: {
+              display: true,
+              text: 'Performance Distribution',
+              color: "white",
+              font: { size: 16, family: "Arial" },
+              padding: { top: 10, bottom: 20 }
             }
           }
-        });
+        }
+      });
+    }
+
+    function updateSubjectList(subjectData) {
+      const subjectList = document.getElementById('subjectList');
+      subjectList.innerHTML = '';
+
+      if (subjectData.length === 0) {
+        subjectList.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No grade data available</div>';
+        return;
       }
-    });
+
+      subjectData.forEach(subject => {
+        const subjectItem = document.createElement('div');
+        subjectItem.className = 'subject-item';
+        
+        const gradeColor = subject.grade >= 90 ? '#2ecc71' : 
+                          subject.grade >= 85 ? '#f39c12' : 
+                          subject.grade >= 80 ? '#f1c40f' : 
+                          subject.grade >= 75 ? '#e67e22' : '#e74c3c';
+        
+        subjectItem.innerHTML = `
+          <div class="subject-name">${subject.name}</div>
+          <div class="subject-grade" style="color: ${gradeColor}">${subject.grade.toFixed(1)}</div>
+          <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">
+            WW: ${subject.ww.toFixed(1)} | PT: ${subject.pt.toFixed(1)} | QA: ${subject.qa.toFixed(1)}
+          </div>
+        `;
+        
+        subjectList.appendChild(subjectItem);
+      });
+    }
+
+    function displayNoData() {
+      document.getElementById('wwAverage').textContent = '0';
+      document.getElementById('ptAverage').textContent = '0';
+      document.getElementById('qaAverage').textContent = '0';
+      document.getElementById('overallGrade').textContent = '0';
+      
+      document.getElementById('subjectList').innerHTML = 
+        '<div style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No grade data available for this quarter</div>';
+      
+      const ctx = document.getElementById("overallChart").getContext("2d");
+      if (window.performanceChart) {
+        window.performanceChart.destroy();
+      }
+      
+      window.performanceChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["No Data Available"],
+          datasets: [{
+            data: [1],
+            backgroundColor: ["#95a5a6"],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: 'No Performance Data Available',
+              color: "white",
+              font: { size: 16, family: "Arial" }
+            }
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
