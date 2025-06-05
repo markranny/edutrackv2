@@ -142,6 +142,31 @@ fn init_database() -> Result<Connection> {
         [],
     )?;
 
+    // Insert some sample students if table is empty
+    let count: i32 = conn.query_row("SELECT COUNT(*) FROM users WHERE role = 'student'", [], |row| {
+        Ok(row.get(0)?)
+    }).unwrap_or(0);
+
+    if count == 0 {
+        let sample_students = vec![
+            ("john.doe@student.edu", "John", "Doe"),
+            ("jane.smith@student.edu", "Jane", "Smith"),
+            ("alice.johnson@student.edu", "Alice", "Johnson"),
+            ("bob.wilson@student.edu", "Bob", "Wilson"),
+            ("maria.garcia@student.edu", "Maria", "Garcia"),
+        ];
+
+        for (email, firstname, lastname) in sample_students {
+            let hashed_password = bcrypt::hash("password123", bcrypt::DEFAULT_COST)
+                .unwrap_or_else(|_| "default_hash".to_string());
+            
+            let _ = conn.execute(
+                "INSERT OR IGNORE INTO users (email, password, role, firstname, lastname) VALUES (?1, ?2, ?3, ?4, ?5)",
+                [email, &hashed_password, "student", firstname, lastname],
+            );
+        }
+    }
+
     Ok(conn)
 }
 
@@ -150,15 +175,16 @@ async fn get_all_students(db: State<'_, DbConnection>) -> Result<Vec<StudentInfo
     let conn = db.0.lock().map_err(|_| "Database lock error")?;
     
     let mut stmt = conn.prepare(
-        "SELECT id, email, firstname, lastname, role FROM users WHERE role = 'student' ORDER BY firstname, lastname"
+        "SELECT id, email, COALESCE(firstname, '') as firstname, COALESCE(lastname, '') as lastname, role 
+         FROM users WHERE role = 'student' ORDER BY firstname, lastname"
     ).map_err(|e| format!("Database error: {}", e))?;
     
     let student_iter = stmt.query_map([], |row| {
         Ok(StudentInfo {
             id: row.get(0)?,
             email: row.get(1)?,
-            firstname: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
-            lastname: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+            firstname: row.get::<_, String>(2)?,
+            lastname: row.get::<_, String>(3)?,
             role: row.get(4)?,
         })
     }).map_err(|e| format!("Database error: {}", e))?;
@@ -345,7 +371,7 @@ async fn delete_student_grades(
     Ok(format!("Deleted {} grade record(s)", affected_rows))
 }
 
-// Keep all the existing functions (tauri_login, tauri_register, etc.)
+// Authentication functions
 #[tauri::command]
 async fn tauri_login(payload: LoginRequest, db: State<'_, DbConnection>) -> Result<LoginResponse, String> {
     let conn = db.0.lock().map_err(|_| "Database lock error")?;

@@ -70,6 +70,10 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
+    #gradingSelect:active {
+      transform: scale(0.95);
+    }
+
     .main-content {
       flex-grow: 1;
       padding: 30px;
@@ -138,6 +142,10 @@
       transform: scale(1.05);
     }
 
+    .btn:active {
+      transform: scale(0.95);
+    }
+
     .btn.export {
       background: #27ae60;
     }
@@ -172,131 +180,8 @@
       transform: scale(1.05);
     }
 
-    /* Student Selection Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-content {
-      background-color: #fefefe;
-      margin: auto;
-      padding: 20px;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      position: absolute;
-      right: 15px;
-      top: 10px;
-    }
-
-    .close:hover {
-      color: black;
-    }
-
-    .student-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .student-card {
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: #f9f9f9;
-    }
-
-    .student-card:hover {
-      border-color: #3498db;
-      background: #e8f4f8;
-      transform: translateY(-2px);
-    }
-
-    .student-card.selected {
-      border-color: #27ae60;
-      background: #e8f5e8;
-    }
-
-    .student-card h4 {
-      margin: 0 0 5px 0;
-      color: #2c3e50;
-    }
-
-    .student-card p {
-      margin: 0;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .search-box {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      font-size: 16px;
-    }
-
-    .select-student-btn {
-      background: #27ae60;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 15px;
-    }
-
-    .select-student-btn:hover {
-      background: #219a52;
-    }
-
-    .select-student-btn:disabled {
-      background: #95a5a6;
-      cursor: not-allowed;
-    }
-
-    .current-student-info {
-      background: #e8f5e8;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border-left: 4px solid #27ae60;
-    }
-
-    .current-student-info h3 {
-      margin: 0 0 5px 0;
-      color: #27ae60;
-    }
-
-    .current-student-info p {
-      margin: 0;
-      color: #666;
+    #subjectSelect:active {
+      transform: scale(0.95);
     }
 
     table {
@@ -336,7 +221,7 @@
     }
 
     .gray-bg {
-      background: #9df89d;
+      background: #e0e0e0;
     }
 
     .calculated {
@@ -353,9 +238,99 @@
 
     .student-name-cell {
       text-align: left;
-      padding: 8px;
+      padding: 2px;
+    }
+
+    .student-dropdown {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      padding: 2px;
+    }
+
+    .gray-bg {
+      background: #9df89d;
+    }
+
+    /* Logout Button */
+    .logout {
+      margin-top: auto;
+      padding-top: 30px;
+    }
+
+    .logout-btn {
+      background-color: #3498db;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .logout-btn i {
+      font-size: 24px;
+      color: #ffffff;
+      transition: color 0.3s ease;
+    }
+
+    .logout-btn:hover i {
+      color: #960f0f;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
       font-weight: bold;
-      background: #e8f4f8;
+      cursor: pointer;
+      position: absolute;
+      right: 15px;
+      top: 10px;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    .modal h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .modal p {
+      margin-bottom: 15px;
+      line-height: 1.5;
     }
 
     .notification {
@@ -383,32 +358,6 @@
       opacity: 1;
     }
 
-    .logout {
-      margin-top: auto;
-      padding-top: 30px;
-    }
-
-    .logout-btn {
-      background-color: #3498db;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-    }
-
-    .logout-btn i {
-      font-size: 24px;
-      color: #ffffff;
-      transition: color 0.3s ease;
-    }
-
-    .logout-btn:hover i {
-      color: #960f0f;
-    }
   </style>
 </head>
 <body>
@@ -441,11 +390,6 @@
       <div class="action-buttons">
         <select id="subjectSelect" hidden></select>
         
-        <button class="btn" onclick="openStudentSelector()">
-          <i class="fas fa-user-plus"></i>
-          Select Student
-        </button>
-        
         <button class="btn template" onclick="downloadTemplate()">
           <i class="fas fa-download"></i>
           Download Template
@@ -465,16 +409,10 @@
       </div>
     </div>
 
-    <!-- Current Student Info -->
-    <div id="currentStudentInfo" class="current-student-info" style="display: none;">
-      <h3 id="currentStudentName">No student selected</h3>
-      <p id="currentStudentEmail"></p>
-    </div>
-
     <table>
       <thead>
         <tr>
-          <th rowspan="2" class="written-works-header">STUDENT</th>
+          <th rowspan="2" class="written-works-header">STUDENTS</th>
           <th colspan="7" class="written-works-header">WRITTEN WORKS (30%)</th>
           <th colspan="7" class="performance-tasks-header">PERFORMANCE TASKS (50%)</th>
           <th colspan="3" class="quarterly-header">QUARTERLY ASSESSMENT (20%)</th>
@@ -495,47 +433,31 @@
           <td>30</td><td>100</td><td>20</td>
           <td>100</td><td>100</td>
         </tr>
-        <tr id="studentGradeRow" style="display: none;">
-          <td class="student-name-cell" id="studentNameCell">Select a student</td>
-          <!-- Written Works -->
-          <td contenteditable="true" data-ww="1"></td>
-          <td contenteditable="true" data-ww="2"></td>
-          <td contenteditable="true" data-ww="3"></td>
-          <td contenteditable="true" data-ww="4"></td>
-          <td class="calculated ww-total">0.00</td>
-          <td class="calculated ww-ps">0.00</td>
-          <td class="calculated ww-wa">0.00</td>
-          <!-- Performance Tasks -->
-          <td contenteditable="true" data-pt="1"></td>
-          <td contenteditable="true" data-pt="2"></td>
-          <td contenteditable="true" data-pt="3"></td>
-          <td contenteditable="true" data-pt="4"></td>
-          <td class="calculated pt-total">0.00</td>
-          <td class="calculated pt-ps">0.00</td>
-          <td class="calculated pt-wa">0.00</td>
-          <!-- Quarterly Assessment -->
-          <td contenteditable="true" data-qa="score"></td>
-          <td class="calculated qa-ps">0.00</td>
-          <td class="calculated qa-wa">0.00</td>
-          <td class="calculated initial-grade">0.00</td>
-          <td class="calculated final-grade">0.00</td>
-        </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Student Selection Modal -->
-  <div id="studentModal" class="modal">
+  <!-- Template Info Modal -->
+  <div id="templateModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeStudentModal()">&times;</span>
-      <h2><i class="fas fa-user-graduate"></i> Select Registered Student</h2>
-      <input type="text" id="studentSearch" class="search-box" placeholder="Search by name or email...">
-      <div id="studentList" class="student-list">
-        <!-- Students will be populated here -->
+      <span class="close" onclick="closeModal('templateModal')">&times;</span>
+      <h2><i class="fas fa-info-circle"></i> Template Download</h2>
+      <p><strong>How to use the template:</strong></p>
+      <ul style="text-align: left; margin-left: 20px;">
+        <li>The first column should contain student names</li>
+        <li>Columns 2-5: Written Works scores (1-4)</li>
+        <li>Columns 9-12: Performance Tasks scores (1-4)</li>
+        <li>Column 16: Quarterly Assessment score</li>
+        <li>All other columns will be calculated automatically</li>
+        <li>Save as Excel format (.xlsx) before importing</li>
+      </ul>
+      <p><strong>Note:</strong> The template includes sample data that you can replace with actual student information.</p>
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn template" onclick="proceedWithDownload()">
+          <i class="fas fa-download"></i>
+          Download Template
+        </button>
       </div>
-      <button id="selectStudentBtn" class="select-student-btn" onclick="selectStudent()" disabled>
-        Select Student
-      </button>
     </div>
   </div>
 
@@ -545,11 +467,9 @@
   <script>
     document.getElementById('profileIcon').onclick = () => location.href = 'profile.html';
 
-    let selectedStudentData = null;
-    let allRegisteredStudents = [];
-
     const getCurrentSubject = () => document.getElementById('subjectSelect').value || 'Unknown';
     const getCurrentQuarter = () => document.getElementById('gradingSelect').value;
+    const storageKey = () => `grades-${getCurrentSubject()}-${getCurrentQuarter()}`;
 
     // Notification system
     function showNotification(message, type = 'success') {
@@ -563,288 +483,28 @@
       }, 3000);
     }
 
-    // Load all registered students from backend
-    async function loadRegisteredStudents() {
-      try {
-        // Get all registered users with role 'student'
-        // Since we don't have a direct API to get all students, we'll get them from localStorage
-        // In a real implementation, you'd have a backend endpoint for this
-        const students = await getAllRegisteredStudents();
-        allRegisteredStudents = students;
-        return students;
-      } catch (error) {
-        console.error('Error loading registered students:', error);
-        showNotification('Error loading registered students: ' + error, 'error');
-        return [];
-      }
+    // Modal functions
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
     }
 
-    // Mock function to get registered students - in real app, this would be a backend call
-    async function getAllRegisteredStudents() {
-      // For now, we'll create a mock list based on typical student data
-      // In a real implementation, you'd call: await window.__TAURI__.core.invoke("get_all_students")
-      return [
-        {
-          id: 1,
-          email: 'john.doe@student.edu',
-          firstname: 'John',
-          lastname: 'Doe',
-          role: 'student'
-        },
-        {
-          id: 2,
-          email: 'jane.smith@student.edu',
-          firstname: 'Jane',
-          lastname: 'Smith',
-          role: 'student'
-        },
-        {
-          id: 3,
-          email: 'alice.johnson@student.edu',
-          firstname: 'Alice',
-          lastname: 'Johnson',
-          role: 'student'
-        },
-        {
-          id: 4,
-          email: 'bob.wilson@student.edu',
-          firstname: 'Bob',
-          lastname: 'Wilson',
-          role: 'student'
-        },
-        {
-          id: 5,
-          email: 'maria.garcia@student.edu',
-          firstname: 'Maria',
-          lastname: 'Garcia',
-          role: 'student'
-        }
-      ];
-    }
-
-    function openStudentSelector() {
-      loadRegisteredStudents().then(() => {
-        populateStudentList(allRegisteredStudents);
-        document.getElementById('studentModal').style.display = 'flex';
-      });
-    }
-
-    function closeStudentModal() {
-      document.getElementById('studentModal').style.display = 'none';
-      selectedStudentData = null;
-      document.getElementById('selectStudentBtn').disabled = true;
-    }
-
-    function populateStudentList(students) {
-      const studentList = document.getElementById('studentList');
-      studentList.innerHTML = '';
-
-      if (students.length === 0) {
-        studentList.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">No registered students found.</p>';
-        return;
-      }
-
-      students.forEach(student => {
-        const studentCard = document.createElement('div');
-        studentCard.className = 'student-card';
-        studentCard.onclick = () => selectStudentCard(studentCard, student);
-        
-        studentCard.innerHTML = `
-          <h4>${student.firstname} ${student.lastname}</h4>
-          <p><i class="fas fa-envelope"></i> ${student.email}</p>
-          <p><i class="fas fa-id-badge"></i> ID: ${student.id}</p>
-        `;
-        
-        studentList.appendChild(studentCard);
-      });
-    }
-
-    function selectStudentCard(cardElement, student) {
-      // Remove selection from all cards
-      document.querySelectorAll('.student-card').forEach(card => {
-        card.classList.remove('selected');
+    // Get all students from localStorage
+    function getAllStudents() {
+      const students = JSON.parse(localStorage.getItem('students') || '[]');
+      const scheduleKeys = Object.keys(localStorage).filter(key => key.startsWith('students_'));
+      
+      scheduleKeys.forEach(key => {
+        const scheduleStudents = JSON.parse(localStorage.getItem(key) || '[]');
+        scheduleStudents.forEach(student => {
+          if (!students.find(s => s.name === student.name)) {
+            students.push(student);
+          }
+        });
       });
       
-      // Select current card
-      cardElement.classList.add('selected');
-      selectedStudentData = student;
-      document.getElementById('selectStudentBtn').disabled = false;
+      return students.filter(student => student.name && student.name.trim() !== '');
     }
 
-    function selectStudent() {
-      if (!selectedStudentData) return;
-
-      // Update current student info
-      document.getElementById('currentStudentName').textContent = 
-        `${selectedStudentData.firstname} ${selectedStudentData.lastname}`;
-      document.getElementById('currentStudentEmail').textContent = selectedStudentData.email;
-      document.getElementById('currentStudentInfo').style.display = 'block';
-
-      // Update the grade table
-      document.getElementById('studentNameCell').textContent = 
-        `${selectedStudentData.firstname} ${selectedStudentData.lastname}`;
-      document.getElementById('studentGradeRow').style.display = 'table-row';
-
-      // Load existing grades for this student
-      loadStudentGrades(selectedStudentData);
-
-      closeStudentModal();
-      showNotification(`Selected student: ${selectedStudentData.firstname} ${selectedStudentData.lastname}`, 'success');
-    }
-
-    function loadStudentGrades(student) {
-      const subject = getCurrentSubject();
-      const quarter = getCurrentQuarter();
-      const key = `grades-${student.email}-${subject}-${quarter}`;
-      
-      const existingGrades = JSON.parse(localStorage.getItem(key) || '{}');
-      
-      // Load written works
-      for (let i = 1; i <= 4; i++) {
-        const cell = document.querySelector(`[data-ww="${i}"]`);
-        if (cell && existingGrades.writtenWorks && existingGrades.writtenWorks[i-1] !== undefined) {
-          cell.textContent = existingGrades.writtenWorks[i-1];
-        } else if (cell) {
-          cell.textContent = '';
-        }
-      }
-      
-      // Load performance tasks
-      for (let i = 1; i <= 4; i++) {
-        const cell = document.querySelector(`[data-pt="${i}"]`);
-        if (cell && existingGrades.performanceTasks && existingGrades.performanceTasks[i-1] !== undefined) {
-          cell.textContent = existingGrades.performanceTasks[i-1];
-        } else if (cell) {
-          cell.textContent = '';
-        }
-      }
-      
-      // Load quarterly assessment
-      const qaCell = document.querySelector('[data-qa="score"]');
-      if (qaCell && existingGrades.quarterlyAssessment !== undefined) {
-        qaCell.textContent = existingGrades.quarterlyAssessment;
-      } else if (qaCell) {
-        qaCell.textContent = '';
-      }
-      
-      // Recalculate
-      recalculateGrades();
-    }
-
-    function saveStudentGrades() {
-      if (!selectedStudentData) return;
-
-      const subject = getCurrentSubject();
-      const quarter = getCurrentQuarter();
-      const key = `grades-${selectedStudentData.email}-${subject}-${quarter}`;
-      
-      const writtenWorks = [];
-      for (let i = 1; i <= 4; i++) {
-        const cell = document.querySelector(`[data-ww="${i}"]`);
-        writtenWorks.push(parseFloat(cell.textContent) || 0);
-      }
-      
-      const performanceTasks = [];
-      for (let i = 1; i <= 4; i++) {
-        const cell = document.querySelector(`[data-pt="${i}"]`);
-        performanceTasks.push(parseFloat(cell.textContent) || 0);
-      }
-      
-      const qaCell = document.querySelector('[data-qa="score"]');
-      const quarterlyAssessment = parseFloat(qaCell.textContent) || 0;
-      
-      const finalGrade = parseFloat(document.querySelector('.final-grade').textContent) || 0;
-      
-      const gradeData = {
-        studentId: selectedStudentData.id,
-        studentEmail: selectedStudentData.email,
-        studentName: `${selectedStudentData.firstname} ${selectedStudentData.lastname}`,
-        subject,
-        quarter,
-        writtenWorks,
-        performanceTasks,
-        quarterlyAssessment,
-        finalGrade,
-        lastUpdated: new Date().toISOString()
-      };
-      
-      localStorage.setItem(key, JSON.stringify(gradeData));
-      
-      // Also save to student's individual record for analytics
-      const studentGradesKey = `student_grades_${selectedStudentData.email}`;
-      let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
-      
-      if (!studentGrades[subject]) {
-        studentGrades[subject] = {};
-      }
-      
-      studentGrades[subject][quarter] = finalGrade;
-      localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
-    }
-
-    function recalculateGrades() {
-      if (!selectedStudentData) return;
-
-      const row = document.getElementById('studentGradeRow');
-      
-      // Calculate Written Works
-      const wwCells = row.querySelectorAll('[data-ww]');
-      let wwTotal = 0;
-      wwCells.forEach(cell => {
-        wwTotal += parseFloat(cell.textContent) || 0;
-      });
-      
-      row.querySelector('.ww-total').textContent = wwTotal.toFixed(2);
-      row.querySelector('.ww-ps').textContent = (wwTotal * 5).toFixed(2);
-      row.querySelector('.ww-wa').textContent = (wwTotal * 1.5).toFixed(2);
-
-      // Calculate Performance Tasks
-      const ptCells = row.querySelectorAll('[data-pt]');
-      let ptTotal = 0;
-      ptCells.forEach(cell => {
-        ptTotal += parseFloat(cell.textContent) || 0;
-      });
-      
-      row.querySelector('.pt-total').textContent = ptTotal.toFixed(2);
-      row.querySelector('.pt-ps').textContent = (ptTotal * 5).toFixed(2);
-      row.querySelector('.pt-wa').textContent = (ptTotal * 2.5).toFixed(2);
-
-      // Calculate Quarterly Assessment
-      const qa = parseFloat(row.querySelector('[data-qa="score"]').textContent || 0);
-      const QA_PS_FACTOR = 100 / 30;
-      const QA_WA_FACTOR = 20 / 30;
-
-      row.querySelector('.qa-ps').textContent = (qa * QA_PS_FACTOR).toFixed(2);
-      row.querySelector('.qa-wa').textContent = (qa * QA_WA_FACTOR).toFixed(2);
-
-      // Calculate Final Grade
-      const initialGrade = (wwTotal * 1.5) + (ptTotal * 2.5) + (qa * QA_WA_FACTOR);
-      row.querySelector('.initial-grade').textContent = initialGrade.toFixed(2);
-      row.querySelector('.final-grade').textContent = initialGrade >= 0 ? initialGrade.toFixed(2) : '0.00';
-      
-      // Save grades automatically
-      saveStudentGrades();
-    }
-
-    // Search functionality
-    document.getElementById('studentSearch').addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const filteredStudents = allRegisteredStudents.filter(student => {
-        const fullName = `${student.firstname} ${student.lastname}`.toLowerCase();
-        const email = student.email.toLowerCase();
-        return fullName.includes(searchTerm) || email.includes(searchTerm);
-      });
-      populateStudentList(filteredStudents);
-    });
-
-    // Add event listeners for grade inputs
-    document.addEventListener('input', function(e) {
-      if (e.target.hasAttribute('contenteditable') && selectedStudentData) {
-        recalculateGrades();
-      }
-    });
-
-    // Initialize subjects dropdown
     function initSubjectDropdown() {
       const select = document.getElementById('subjectSelect');
       const scheduleRaw = localStorage.getItem('schedule');
@@ -866,44 +526,628 @@
       });
 
       select.hidden = false;
-      select.onchange = () => {
-        if (selectedStudentData) {
-          loadStudentGrades(selectedStudentData);
-        }
-      };
+      select.onchange = loadGradesFromLocal;
+      loadGradesFromLocal();
     }
 
-    // Export and template functions (simplified)
-    function exportToExcel() {
-      if (!selectedStudentData) {
-        showNotification('Please select a student first', 'error');
-        return;
+    const studentDataBody = document.getElementById('student-data');
+
+    function createStudentRow() {
+      const tr = document.createElement('tr');
+
+      // Create dropdown for student name
+      const nameCell = document.createElement('td');
+      nameCell.className = 'student-name-cell';
+      
+      const dropdown = document.createElement('select');
+      dropdown.className = 'student-dropdown';
+      
+      // Add empty option
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'Select Student';
+      dropdown.appendChild(emptyOption);
+      
+      // Add student options
+      const allStudents = getAllStudents();
+      allStudents.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.name;
+        option.textContent = student.name;
+        dropdown.appendChild(option);
+      });
+      
+      dropdown.onchange = function() {
+        saveGradesToLocal();
+        saveStudentGrades(this.value, tr);
+      };
+      
+      nameCell.appendChild(dropdown);
+      tr.appendChild(nameCell);
+
+      // Written Works (4 inputs)
+      for (let i = 0; i < 4; i++) {
+        const td = document.createElement('td');
+        td.contentEditable = true;
+        td.dataset.ww = '';
+        tr.appendChild(td);
       }
+
+      // Written Works calculated columns
+      tr.innerHTML += `
+        <td class="calculated ww-total">0.00</td>
+        <td class="calculated ww-ps">0.00</td>
+        <td class="calculated ww-wa">0.00</td>
+      `;
+
+      // Performance Tasks (4 inputs)
+      for (let i = 0; i < 4; i++) {
+        const td = document.createElement('td');
+        td.contentEditable = true;
+        td.dataset.pt = '';
+        tr.appendChild(td);
+      }
+
+      // Performance Tasks calculated columns + Quarterly Assessment
+      tr.innerHTML += `
+        <td class="calculated pt-total">0.00</td>
+        <td class="calculated pt-ps">0.00</td>
+        <td class="calculated pt-wa">0.00</td>
+        <td contenteditable="true" data-qa="score"></td>
+        <td class="calculated qa-ps">0.00</td>
+        <td class="calculated qa-wa">0.00</td>
+        <td class="calculated initial-grade">0.00</td>
+        <td class="calculated final-grade">#N/A</td>
+      `;
+      return tr;
+    }
+
+    // Clear existing rows and create new ones
+    [...studentDataBody.querySelectorAll('tr:not(.section-title)')].forEach(r => r.remove());
+    const header = studentDataBody.querySelector('.section-title');
+    for (let i = 0; i < 30; i++) header.after(createStudentRow());
+
+    const num = v => isNaN(parseFloat(v)) ? 0 : +parseFloat(v);
+
+    function saveGradesToLocal() {
+      const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+      const data = rows.map(r => {
+        const cells = [...r.children];
+        return cells.map((c, index) => {
+          if (index === 0) {
+            // For the first cell (student name), get the dropdown value
+            const dropdown = c.querySelector('select');
+            return dropdown ? dropdown.value : '';
+          }
+          return c.textContent;
+        });
+      });
+      localStorage.setItem(storageKey(), JSON.stringify(data));
+    }
+
+    function saveStudentGrades(studentName, row) {
+      if (!studentName) return;
       
       const subject = getCurrentSubject();
       const quarter = getCurrentQuarter();
-      const filename = `${selectedStudentData.firstname}_${selectedStudentData.lastname}_${subject}_${quarter}_Grades.xlsx`;
       
-      const table = document.querySelector('table');
-      const wb = XLSX.utils.table_to_book(table, {sheet: "Grades"});
-      XLSX.writeFile(wb, filename);
+      // Get the final grade from the row
+      const finalGradeCell = row.querySelector('.final-grade');
+      const finalGrade = parseFloat(finalGradeCell.textContent) || 0;
       
-      showNotification(`Grades exported for ${selectedStudentData.firstname} ${selectedStudentData.lastname}`, 'success');
+      // Save to student's individual grades storage
+      const studentGradesKey = `student_grades_${studentName}`;
+      let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+      
+      if (!studentGrades[subject]) {
+        studentGrades[subject] = {};
+      }
+      
+      studentGrades[subject][quarter] = finalGrade;
+      localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
     }
 
+    function loadGradesFromLocal() {
+      const stored = localStorage.getItem(storageKey());
+      const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+
+      // Reset all rows
+      rows.forEach(r => {
+        const dropdown = r.querySelector('.student-dropdown');
+        if (dropdown) dropdown.value = '';
+        [...r.children].forEach((td, i) => {
+          if (i !== 0) td.textContent = '';
+        });
+      });
+
+      if (!stored) {
+        rows.forEach(recalcRow);
+        return;
+      }
+
+      JSON.parse(stored).forEach((rowData, i) => {
+        const row = rows[i];
+        if (!row) return;
+        
+        rowData.forEach((text, j) => {
+          if (j === 0) {
+            // Set dropdown value for student name
+            const dropdown = row.querySelector('.student-dropdown');
+            if (dropdown) {
+              dropdown.value = text;
+              // Refresh dropdown options
+              refreshDropdownOptions(dropdown);
+            }
+          } else if (row.children[j]) {
+            row.children[j].textContent = text;
+          }
+        });
+      });
+
+      rows.forEach(recalcRow);
+    }
+
+    function refreshDropdownOptions(dropdown) {
+      const currentValue = dropdown.value;
+      const allStudents = getAllStudents();
+      
+      // Clear existing options except the first one
+      while (dropdown.children.length > 1) {
+        dropdown.removeChild(dropdown.lastChild);
+      }
+      
+      // Add updated student options
+      allStudents.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.name;
+        option.textContent = student.name;
+        dropdown.appendChild(option);
+      });
+      
+      dropdown.value = currentValue;
+    }
+
+    function recalcRow(row) {
+      const ww = [...row.querySelectorAll('[data-ww]')].map(td => num(td.textContent));
+      const wwT = ww.reduce((a, b) => a + b, 0);
+      row.querySelector('.ww-total').textContent = wwT.toFixed(2);
+      row.querySelector('.ww-ps').textContent   = (wwT * 5).toFixed(2);
+      row.querySelector('.ww-wa').textContent   = (wwT * 1.5).toFixed(2);
+
+      const pt = [...row.querySelectorAll('[data-pt]')].map(td => num(td.textContent));
+      const ptT = pt.reduce((a, b) => a + b, 0);
+      row.querySelector('.pt-total').textContent = ptT.toFixed(2);
+      row.querySelector('.pt-ps').textContent   = (ptT * 5).toFixed(2);
+      row.querySelector('.pt-wa').textContent   = (ptT * 2.5).toFixed(2);
+
+      const qa = num(row.querySelector('[data-qa="score"]').textContent || 0);
+      const QA_PS_FACTOR = 100 / 30;
+      const QA_WA_FACTOR =  20 / 30;
+
+      row.querySelector('.qa-ps').textContent = (qa * QA_PS_FACTOR).toFixed(2);
+      row.querySelector('.qa-wa').textContent = (qa * QA_WA_FACTOR).toFixed(2);
+
+      const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR);
+      row.querySelector('.initial-grade').textContent = initial.toFixed(2);
+      row.querySelector('.final-grade').textContent   = initial >= 0 ? initial.toFixed(2) : '#N/A';
+      
+      // Save student grades when recalculating
+      const dropdown = row.querySelector('.student-dropdown');
+      if (dropdown && dropdown.value) {
+        saveStudentGrades(dropdown.value, row);
+      }
+    }
+
+    studentDataBody.addEventListener('input', e => {
+      if (!e.target.isContentEditable) return;
+      const tr = e.target.closest('tr');
+      if (!tr) return;
+      recalcRow(tr);
+      saveGradesToLocal();
+    });
+
+    // Export to Excel function
+    function exportToExcel() {
+      const subject = getCurrentSubject();
+      const quarter = getCurrentQuarter();
+      
+      if (!subject || subject === 'Unknown') {
+        showNotification('Please select a subject first', 'error');
+        return;
+      }
+
+      try {
+        // Get current table data
+        const table = document.querySelector('table');
+        const wb = XLSX.utils.table_to_book(table, {sheet: "Grades"});
+        
+        // Create filename with subject and quarter
+        const filename = `${subject}_${quarter}_Quarter_Grades_${new Date().toISOString().split('T')[0]}.xlsx`;
+        
+        // Save the file
+        XLSX.writeFile(wb, filename);
+        
+        showNotification(`Grades exported successfully as ${filename}`, 'success');
+      } catch (error) {
+        console.error('Export error:', error);
+        showNotification('Error exporting grades. Please try again.', 'error');
+      }
+    }
+
+    // Download template function
     function downloadTemplate() {
-      showNotification('Template download feature coming soon!', 'success');
+      document.getElementById('templateModal').style.display = 'flex';
+    }
+
+    function proceedWithDownload() {
+      try {
+        // Create template data with proper structure
+        const templateData = [
+          // Header rows
+          ['STUDENTS', 'WRITTEN WORKS (30%)', '', '', '', '', '', '', 'PERFORMANCE TASKS (50%)', '', '', '', '', '', '', 'QUARTERLY ASSESSMENT (20%)', '', '', 'INITIAL GRADE', 'QUARTERLY GRADE'],
+          ['NAME', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', 'SCORE', 'PS', 'WA', '100', '100'],
+          ['Student Name', '5', '5', '5', '5', '20', '100', '30', '5', '5', '5', '5', '20', '100', '50', '30', '100', '20', '100', '100'],
+          // Sample student data
+          ['Juan Dela Cruz', '4', '5', '3', '4', '', '', '', '4', '5', '4', '5', '', '', '', '25', '', '', '', ''],
+          ['Maria Santos', '5', '4', '5', '3', '', '', '', '5', '4', '5', '4', '', '', '', '28', '', '', '', ''],
+          ['Jose Rizal', '3', '4', '4', '5', '', '', '', '3', '4', '4', '5', '', '', '', '22', '', '', '', '']
+        ];
+
+        // Add empty rows for more students
+        for (let i = 0; i < 25; i++) {
+          templateData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+        }
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(templateData);
+        
+        // Set column widths
+        ws['!cols'] = [
+          {wch: 20}, // Student name
+          ...Array(19).fill({wch: 8}) // Other columns
+        ];
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Grades Template");
+        
+        // Create filename
+        const subject = getCurrentSubject();
+        const quarter = getCurrentQuarter();
+        const filename = `Grades_Template_${subject}_${quarter}_Quarter.xlsx`;
+        
+        // Save file
+        XLSX.writeFile(wb, filename);
+        
+        closeModal('templateModal');
+        showNotification(`Template downloaded as ${filename}`, 'success');
+      } catch (error) {
+        console.error('Template download error:', error);
+        showNotification('Error downloading template. Please try again.', 'error');
+      }
+    }
+
+    // Enhanced file import function
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const wb = XLSX.read(evt.target.result, { type: 'binary' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          
+          if (!data.length) {
+            showNotification('The Excel file appears to be empty', 'error');
+            return;
+          }
+
+          // Find the data starting row (skip headers)
+          let startRow = 0;
+          for (let i = 0; i < Math.min(5, data.length); i++) {
+            if (data[i] && data[i][0] && 
+                typeof data[i][0] === 'string' && 
+                !data[i][0].toLowerCase().includes('student') &&
+                !data[i][0].toLowerCase().includes('name') &&
+                data[i][0].trim() !== '') {
+              startRow = i;
+              break;
+            }
+          }
+
+          const studentRows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+          let importedCount = 0;
+
+          // Clear existing data first
+          studentRows.forEach(row => {
+            const dropdown = row.querySelector('.student-dropdown');
+            if (dropdown) dropdown.value = '';
+            [...row.children].forEach((td, i) => {
+              if (i !== 0 && td.isContentEditable) td.textContent = '';
+            });
+          });
+
+          // Import data starting from the detected row
+          for (let i = startRow; i < data.length && importedCount < studentRows.length; i++) {
+            const rowData = data[i];
+            if (!rowData || !rowData[0] || rowData[0].toString().trim() === '') continue;
+
+            const studentRow = studentRows[importedCount];
+            const dropdown = studentRow.querySelector('.student-dropdown');
+            
+            // Set student name
+            if (dropdown) {
+              // Add student to dropdown if not exists
+              const studentName = rowData[0].toString().trim();
+              let optionExists = false;
+              
+              for (let j = 0; j < dropdown.options.length; j++) {
+                if (dropdown.options[j].value === studentName) {
+                  optionExists = true;
+                  break;
+                }
+              }
+              
+              if (!optionExists) {
+                const newOption = document.createElement('option');
+                newOption.value = studentName;
+                newOption.textContent = studentName;
+                dropdown.appendChild(newOption);
+                
+                // Also add to students list in localStorage
+                const students = JSON.parse(localStorage.getItem('students') || '[]');
+                if (!students.find(s => s.name === studentName)) {
+                  students.push({ name: studentName });
+                  localStorage.setItem('students', JSON.stringify(students));
+                }
+              }
+              
+              dropdown.value = studentName;
+            }
+
+            // Import scores - Written Works (columns 1-4)
+            const wwCells = studentRow.querySelectorAll('[data-ww]');
+            for (let j = 0; j < Math.min(4, wwCells.length); j++) {
+              if (rowData[j + 1] !== undefined && rowData[j + 1] !== null && rowData[j + 1] !== '') {
+                wwCells[j].textContent = rowData[j + 1].toString();
+              }
+            }
+
+            // Import scores - Performance Tasks (columns 8-11)
+            const ptCells = studentRow.querySelectorAll('[data-pt]');
+            for (let j = 0; j < Math.min(4, ptCells.length); j++) {
+              if (rowData[j + 8] !== undefined && rowData[j + 8] !== null && rowData[j + 8] !== '') {
+                ptCells[j].textContent = rowData[j + 8].toString();
+              }
+            }
+
+            // Import Quarterly Assessment score (column 15)
+            const qaCell = studentRow.querySelector('[data-qa="score"]');
+            if (qaCell && rowData[15] !== undefined && rowData[15] !== null && rowData[15] !== '') {
+              qaCell.textContent = rowData[15].toString();
+            }
+
+            importedCount++;
+          }
+
+          // Recalculate all rows after import
+          studentRows.forEach(recalcRow);
+          saveGradesToLocal();
+
+          showNotification(`Successfully imported ${importedCount} student records`, 'success');
+          
+        } catch (error) {
+          console.error('Import error:', error);
+          showNotification('Error importing file. Please check the file format and try again.', 'error');
+        }
+      };
+      
+      reader.readAsBinaryString(file);
+      e.target.value = ''; // Clear file input
+    });
+
+    function updateStudentNamesAcrossSubjects(names) {
+      // This function is kept for compatibility but names are now handled via dropdown
+      const scheduleRaw = localStorage.getItem('schedule');
+      if (!scheduleRaw) return;
+      const subjects = [...new Set(JSON.parse(scheduleRaw).map(s => s.subject).filter(Boolean))];
+
+      // Refresh all dropdowns
+      const dropdowns = document.querySelectorAll('.student-dropdown');
+      dropdowns.forEach(refreshDropdownOptions);
+    }
+
+    // Additional utility functions for better Excel handling
+
+    // Function to validate imported data
+    function validateImportedData(data) {
+      const errors = [];
+      
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !row[0]) continue;
+        
+        // Check Written Works scores (columns 1-4)
+        for (let j = 1; j <= 4; j++) {
+          if (row[j] !== undefined && row[j] !== null && row[j] !== '') {
+            const score = parseFloat(row[j]);
+            if (isNaN(score) || score < 0 || score > 5) {
+              errors.push(`Row ${i + 1}: Invalid Written Work score in column ${j} (${row[j]}). Should be 0-5.`);
+            }
+          }
+        }
+        
+        // Check Performance Tasks scores (columns 8-11)
+        for (let j = 8; j <= 11; j++) {
+          if (row[j] !== undefined && row[j] !== null && row[j] !== '') {
+            const score = parseFloat(row[j]);
+            if (isNaN(score) || score < 0 || score > 5) {
+              errors.push(`Row ${i + 1}: Invalid Performance Task score in column ${j} (${row[j]}). Should be 0-5.`);
+            }
+          }
+        }
+        
+        // Check Quarterly Assessment score (column 15)
+        if (row[15] !== undefined && row[15] !== null && row[15] !== '') {
+          const score = parseFloat(row[15]);
+          if (isNaN(score) || score < 0 || score > 30) {
+            errors.push(`Row ${i + 1}: Invalid Quarterly Assessment score (${row[15]}). Should be 0-30.`);
+          }
+        }
+      }
+      
+      return errors;
+    }
+
+    // Function to backup current data before import
+    function backupCurrentData() {
+      const currentData = localStorage.getItem(storageKey());
+      if (currentData) {
+        const backupKey = `${storageKey()}_backup_${Date.now()}`;
+        localStorage.setItem(backupKey, currentData);
+        return backupKey;
+      }
+      return null;
+    }
+
+    // Enhanced export function with more options
+    function exportToExcelAdvanced() {
+      const subject = getCurrentSubject();
+      const quarter = getCurrentQuarter();
+      
+      if (!subject || subject === 'Unknown') {
+        showNotification('Please select a subject first', 'error');
+        return;
+      }
+
+      try {
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        
+        // Get current table data for main sheet
+        const table = document.querySelector('table');
+        const ws1 = XLSX.utils.table_to_sheet(table);
+        
+        // Create summary sheet
+        const summaryData = [
+          ['Grade Summary Report'],
+          ['Subject:', subject],
+          ['Quarter:', quarter],
+          ['Export Date:', new Date().toLocaleString()],
+          [''],
+          ['Student Statistics:']
+        ];
+        
+        const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+        let totalStudents = 0;
+        let passedStudents = 0;
+        let averageGrade = 0;
+        let totalGrades = 0;
+        
+        rows.forEach(row => {
+          const dropdown = row.querySelector('.student-dropdown');
+          const finalGradeCell = row.querySelector('.final-grade');
+          
+          if (dropdown && dropdown.value && finalGradeCell) {
+            const grade = parseFloat(finalGradeCell.textContent);
+            if (!isNaN(grade) && grade > 0) {
+              totalStudents++;
+              totalGrades += grade;
+              if (grade >= 75) passedStudents++;
+            }
+          }
+        });
+        
+        if (totalStudents > 0) {
+          averageGrade = totalGrades / totalStudents;
+        }
+        
+        summaryData.push(
+          ['Total Students:', totalStudents],
+          ['Passed (≥75):', passedStudents],
+          ['Failed (<75):', totalStudents - passedStudents],
+          ['Class Average:', averageGrade.toFixed(2)],
+          ['Pass Rate:', totalStudents > 0 ? ((passedStudents / totalStudents) * 100).toFixed(1) + '%' : '0%']
+        );
+        
+        const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+        
+        // Add sheets to workbook
+        XLSX.utils.book_append_sheet(wb, ws1, "Detailed Grades");
+        XLSX.utils.book_append_sheet(wb, ws2, "Summary");
+        
+        // Create filename
+        const filename = `${subject}_${quarter}_Quarter_Complete_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+        
+        // Save the file
+        XLSX.writeFile(wb, filename);
+        
+        showNotification(`Complete report exported as ${filename}`, 'success');
+      } catch (error) {
+        console.error('Export error:', error);
+        showNotification('Error exporting complete report. Please try again.', 'error');
+      }
     }
 
     // Initialize everything
-    document.addEventListener('DOMContentLoaded', function() {
-      initSubjectDropdown();
-      document.getElementById('gradingSelect').onchange = () => {
-        if (selectedStudentData) {
-          loadStudentGrades(selectedStudentData);
-        }
-      };
+    document.getElementById('gradingSelect').onchange = loadGradesFromLocal;
+    initSubjectDropdown();
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl+E for export
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        exportToExcel();
+      }
+      
+      // Ctrl+T for template download
+      if (e.ctrlKey && e.key === 't') {
+        e.preventDefault();
+        downloadTemplate();
+      }
+      
+      // Ctrl+I for import
+      if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        document.getElementById('fileInput').click();
+      }
     });
+
+    // Add tooltips to buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add title attributes for tooltips
+      document.querySelector('.btn.template').title = 'Download Excel template (Ctrl+T)';
+      document.querySelector('.btn:not(.template):not(.export)').title = 'Import Excel file (Ctrl+I)';
+      document.querySelector('.btn.export').title = 'Export to Excel (Ctrl+E)';
+    });
+
+    // Auto-save functionality
+    let autoSaveInterval;
+    function startAutoSave() {
+      // Save every 30 seconds
+      autoSaveInterval = setInterval(() => {
+        saveGradesToLocal();
+      }, 30000);
+    }
+
+    function stopAutoSave() {
+      if (autoSaveInterval) {
+        clearInterval(autoSaveInterval);
+      }
+    }
+
+    // Start auto-save when page loads
+    startAutoSave();
+
+    // Stop auto-save when page unloads
+    window.addEventListener('beforeunload', () => {
+      stopAutoSave();
+      saveGradesToLocal(); // Final save
+    });
+
   </script>
 </body>
 </html>
