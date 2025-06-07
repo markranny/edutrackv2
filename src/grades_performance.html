@@ -162,6 +162,14 @@
       background: #e67e22;
     }
 
+    .btn.refresh {
+      background: #9b59b6;
+    }
+
+    .btn.refresh:hover {
+      background: #8e44ad;
+    }
+
     #subjectSelect {
       appearance: none;
       background: #3498db;
@@ -354,6 +362,10 @@
       background-color: #e74c3c;
     }
 
+    .notification.info {
+      background-color: #3498db;
+    }
+
     .notification.show {
       opacity: 1;
     }
@@ -389,6 +401,16 @@
 
       <div class="action-buttons">
         <select id="subjectSelect" hidden></select>
+        
+        <button class="btn refresh" onclick="refreshStudents()">
+          <i class="fas fa-sync-alt"></i>
+          Refresh Students
+        </button>
+        
+        <button class="btn" onclick="checkDatabaseStatus()">
+          <i class="fas fa-info-circle"></i>
+          Check Database
+        </button>
         
         <button class="btn template" onclick="downloadTemplate()">
           <i class="fas fa-download"></i>
@@ -465,6 +487,24 @@
   <div id="notification" class="notification"></div>
 
   <script>
+    // Check if Tauri API is available - Updated detection
+    const isTauriApp = typeof window.__TAURI__ !== 'undefined' && window.__TAURI__.invoke;
+    let registeredStudents = [];
+
+    // Import Tauri API if available
+    let invoke;
+    if (typeof window.__TAURI__ !== 'undefined' && window.__TAURI__.invoke) {
+      invoke = window.__TAURI__.invoke;
+      console.log('Tauri API loaded successfully');
+    } else if (typeof window.__TAURI_API__ !== 'undefined') {
+      // Alternative Tauri API access
+      invoke = window.__TAURI_API__.invoke;
+      console.log('Tauri API loaded via __TAURI_API__');
+    } else {
+      console.log('Tauri API not available - running in web mode');
+      invoke = null;
+    }
+
     document.getElementById('profileIcon').onclick = () => location.href = 'profile.html';
 
     const getCurrentSubject = () => document.getElementById('subjectSelect').value || 'Unknown';
@@ -488,8 +528,51 @@
       document.getElementById(modalId).style.display = 'none';
     }
 
-    // Get all students from localStorage
-    function getAllStudents() {
+    // Fetch registered students from database
+    async function fetchRegisteredStudents() {
+      if (!invoke) {
+        console.log('Tauri invoke not available, using localStorage fallback');
+        return getAllStudentsLocal();
+      }
+
+      try {
+        showNotification('Loading registered students...', 'info');
+        
+        // Debug: Check if Tauri API is available
+        console.log('Tauri invoke function available:', !!invoke);
+        
+        const students = await invoke('get_all_students');
+        console.log('Raw students from database:', students);
+        
+        if (!students || students.length === 0) {
+          showNotification('No students found in database. Using local data.', 'info');
+          return getAllStudentsLocal();
+        }
+        
+        registeredStudents = students.map(student => {
+          const fullName = `${student.firstname || ''} ${student.lastname || ''}`.trim();
+          return {
+            id: student.id,
+            name: fullName || student.email,
+            email: student.email,
+            firstname: student.firstname || '',
+            lastname: student.lastname || ''
+          };
+        });
+        
+        console.log('Processed students:', registeredStudents);
+        showNotification(`Loaded ${registeredStudents.length} registered students`, 'success');
+        return registeredStudents;
+      } catch (error) {
+        console.error('Error fetching students from database:', error);
+        console.error('Error details:', error.message, error.stack);
+        showNotification(`Error loading students: ${error.message}. Using local data.`, 'error');
+        return getAllStudentsLocal();
+      }
+    }
+
+    // Fallback function for localStorage students
+    function getAllStudentsLocal() {
       const students = JSON.parse(localStorage.getItem('students') || '[]');
       const scheduleKeys = Object.keys(localStorage).filter(key => key.startsWith('students_'));
       
@@ -503,6 +586,216 @@
       });
       
       return students.filter(student => student.name && student.name.trim() !== '');
+    }
+
+    // Test database connection and add test students
+    async function testDatabaseConnection() {
+      if (!invoke) {
+        console.log('Tauri invoke not available');
+        return false;
+      }
+
+      try {
+        console.log('Testing database connection...');
+        const students = await invoke('get_all_students');
+        console.log('Database test successful. Students found:', students.length);
+        console.log('Students data:', students);
+        return true;
+      } catch (error) {
+        console.error('Database test failed:', error);
+        return false;
+      }
+    }
+
+    // Create test students in database
+    async function createTestStudents() {
+      if (!invoke) {
+        showNotification('Tauri API not available', 'error');
+        return;
+      }
+
+      try {
+        showNotification('Creating test students...', 'info');
+        
+        const testStudents = [
+          {
+            email: 'john.doe@student.com',
+            password: 'password123',
+            role: 'student',
+            firstname: 'John',
+            lastname: 'Doe'
+          },
+          {
+            email: 'jane.smith@student.com',
+            password: 'password123',
+            role: 'student',
+            firstname: 'Jane',
+            lastname: 'Smith'
+          },
+          {
+            email: 'mike.johnson@student.com',
+            password: 'password123',
+            role: 'student',
+            firstname: 'Mike',
+            lastname: 'Johnson'
+          },
+          {
+            email: 'sarah.wilson@student.com',
+            password: 'password123',
+            role: 'student',
+            firstname: 'Sarah',
+            lastname: 'Wilson'
+          },
+          {
+            email: 'tom.brown@student.com',
+            password: 'password123',
+            role: 'student',
+            firstname: 'Tom',
+            lastname: 'Brown'
+          }
+        ];
+
+        let successCount = 0;
+        for (const student of testStudents) {
+          try {
+            const result = await invoke('tauri_register', student);
+            console.log('Created student:', student.firstname, student.lastname, result);
+            successCount++;
+          } catch (error) {
+            console.log('Student already exists or error:', student.firstname, student.lastname, error);
+          }
+        }
+
+        showNotification(`Created ${successCount} test students`, 'success');
+        
+        // Refresh students after creation
+        await refreshStudents();
+        
+      } catch (error) {
+        console.error('Error creating test students:', error);
+        showNotification('Error creating test students', 'error');
+      }
+    }
+
+    // Add test button functionality
+    function addTestButton() {
+      const testBtn = document.createElement('button');
+      testBtn.className = 'btn';
+      testBtn.innerHTML = '<i class="fas fa-database"></i> Test DB';
+      testBtn.onclick = async () => {
+        const success = await testDatabaseConnection();
+        if (success) {
+          showNotification('Database connection successful!', 'success');
+        } else {
+          showNotification('Database connection failed!', 'error');
+        }
+      };
+      
+      const createStudentsBtn = document.createElement('button');
+      createStudentsBtn.className = 'btn';
+      createStudentsBtn.style.background = '#e67e22';
+      createStudentsBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Test Students';
+      createStudentsBtn.onclick = createTestStudents;
+      
+      const actionButtons = document.querySelector('.action-buttons');
+      actionButtons.insertBefore(createStudentsBtn, actionButtons.firstChild);
+      actionButtons.insertBefore(testBtn, actionButtons.firstChild);
+    }
+
+    // Check database status
+    async function checkDatabaseStatus() {
+      if (!invoke) {
+        showNotification('Tauri API not available - running in web mode', 'info');
+        return;
+      }
+
+      try {
+        console.log('=== DATABASE STATUS CHECK ===');
+        
+        // Test the database connection
+        console.log('1. Testing database connection...');
+        const students = await invoke('get_all_students');
+        console.log('2. Raw response from get_all_students:', students);
+        console.log('3. Number of students found:', students ? students.length : 0);
+        console.log('4. Students data structure:', JSON.stringify(students, null, 2));
+        
+        if (students && students.length > 0) {
+          showNotification(`Database OK: Found ${students.length} students`, 'success');
+          console.log('5. Students found - details:');
+          students.forEach((student, index) => {
+            console.log(`   Student ${index + 1}:`, {
+              id: student.id,
+              email: student.email,
+              firstname: student.firstname,
+              lastname: student.lastname,
+              role: student.role
+            });
+          });
+        } else {
+          showNotification('Database OK but no students found. Try creating test students.', 'info');
+          console.log('5. No students found in database');
+        }
+        
+        console.log('=== END DATABASE STATUS CHECK ===');
+        
+      } catch (error) {
+        console.error('Database status check failed:', error);
+        showNotification(`Database Error: ${error.message || error}`, 'error');
+      }
+    }
+
+    // Refresh students function
+    async function refreshStudents() {
+      console.log('=== REFRESHING STUDENTS ===');
+      const students = await fetchRegisteredStudents();
+      
+      console.log('Students to populate:', students);
+      
+      // Update all existing dropdowns
+      const dropdowns = document.querySelectorAll('.student-dropdown');
+      console.log('Found dropdowns:', dropdowns.length);
+      
+      dropdowns.forEach((dropdown, index) => {
+        const currentValue = dropdown.value;
+        console.log(`Updating dropdown ${index}, current value:`, currentValue);
+        populateStudentDropdown(dropdown, students);
+        dropdown.value = currentValue; // Restore selection if still valid
+      });
+      
+      console.log('=== STUDENTS REFRESH COMPLETED ===');
+    }
+
+    // Populate student dropdown with registered students
+    function populateStudentDropdown(dropdown, students = registeredStudents) {
+      console.log('Populating dropdown with students:', students);
+      
+      // Clear existing options except the first one (Select Student)
+      while (dropdown.children.length > 1) {
+        dropdown.removeChild(dropdown.lastChild);
+      }
+      
+      // Add student options
+      if (students && students.length > 0) {
+        students.forEach((student, index) => {
+          console.log(`Adding student ${index}:`, student);
+          const option = document.createElement('option');
+          option.value = student.name || student.email;
+          option.textContent = student.name || `${student.firstname} ${student.lastname}`.trim() || student.email;
+          option.setAttribute('data-email', student.email || '');
+          option.setAttribute('data-id', student.id || '');
+          dropdown.appendChild(option);
+        });
+        console.log(`Added ${students.length} students to dropdown`);
+      } else {
+        console.log('No students to add to dropdown');
+        // Add a message when no students are found
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No registered students found';
+        option.disabled = true;
+        option.style.color = '#999';
+        dropdown.appendChild(option);
+      }
     }
 
     function initSubjectDropdown() {
@@ -548,14 +841,8 @@
       emptyOption.textContent = 'Select Student';
       dropdown.appendChild(emptyOption);
       
-      // Add student options
-      const allStudents = getAllStudents();
-      allStudents.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.name;
-        option.textContent = student.name;
-        dropdown.appendChild(option);
-      });
+      // Populate with registered students
+      populateStudentDropdown(dropdown);
       
       dropdown.onchange = function() {
         saveGradesToLocal();
@@ -625,7 +912,8 @@
       localStorage.setItem(storageKey(), JSON.stringify(data));
     }
 
-    function saveStudentGrades(studentName, row) {
+    // Save student grades to database if in Tauri environment
+    async function saveStudentGrades(studentName, row) {
       if (!studentName) return;
       
       const subject = getCurrentSubject();
@@ -635,7 +923,7 @@
       const finalGradeCell = row.querySelector('.final-grade');
       const finalGrade = parseFloat(finalGradeCell.textContent) || 0;
       
-      // Save to student's individual grades storage
+      // Save to localStorage for local backup
       const studentGradesKey = `student_grades_${studentName}`;
       let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
       
@@ -645,6 +933,42 @@
       
       studentGrades[subject][quarter] = finalGrade;
       localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
+
+      // Save to database if in Tauri environment
+      if (invoke) {
+        try {
+          // Get student email from dropdown option
+          const dropdown = row.querySelector('.student-dropdown');
+          const selectedOption = dropdown.options[dropdown.selectedIndex];
+          const studentEmail = selectedOption.getAttribute('data-email');
+          
+          if (!studentEmail) {
+            console.warn('No email found for student:', studentName);
+            return;
+          }
+
+          // Collect grade data
+          const writtenWorks = [...row.querySelectorAll('[data-ww]')].map(td => num(td.textContent));
+          const performanceTasks = [...row.querySelectorAll('[data-pt]')].map(td => num(td.textContent));
+          const quarterlyAssessment = num(row.querySelector('[data-qa="score"]').textContent || 0);
+
+          // Save to database
+          await invoke('save_student_grades', {
+            studentEmail: studentEmail,
+            subject: subject,
+            quarter: quarter,
+            writtenWorks: writtenWorks,
+            performanceTasks: performanceTasks,
+            quarterlyAssessment: quarterlyAssessment,
+            finalGrade: finalGrade
+          });
+
+          console.log(`Grades saved to database for ${studentName}`);
+        } catch (error) {
+          console.error('Error saving grades to database:', error);
+          showNotification('Error saving grades to database', 'error');
+        }
+      }
     }
 
     function loadGradesFromLocal() {
@@ -675,8 +999,6 @@
             const dropdown = row.querySelector('.student-dropdown');
             if (dropdown) {
               dropdown.value = text;
-              // Refresh dropdown options
-              refreshDropdownOptions(dropdown);
             }
           } else if (row.children[j]) {
             row.children[j].textContent = text;
@@ -685,26 +1007,6 @@
       });
 
       rows.forEach(recalcRow);
-    }
-
-    function refreshDropdownOptions(dropdown) {
-      const currentValue = dropdown.value;
-      const allStudents = getAllStudents();
-      
-      // Clear existing options except the first one
-      while (dropdown.children.length > 1) {
-        dropdown.removeChild(dropdown.lastChild);
-      }
-      
-      // Add updated student options
-      allStudents.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.name;
-        option.textContent = student.name;
-        dropdown.appendChild(option);
-      });
-      
-      dropdown.value = currentValue;
     }
 
     function recalcRow(row) {
@@ -787,14 +1089,17 @@
           ['STUDENTS', 'WRITTEN WORKS (30%)', '', '', '', '', '', '', 'PERFORMANCE TASKS (50%)', '', '', '', '', '', '', 'QUARTERLY ASSESSMENT (20%)', '', '', 'INITIAL GRADE', 'QUARTERLY GRADE'],
           ['NAME', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', 'SCORE', 'PS', 'WA', '100', '100'],
           ['Student Name', '5', '5', '5', '5', '20', '100', '30', '5', '5', '5', '5', '20', '100', '50', '30', '100', '20', '100', '100'],
-          // Sample student data
-          ['Juan Dela Cruz', '4', '5', '3', '4', '', '', '', '4', '5', '4', '5', '', '', '', '25', '', '', '', ''],
-          ['Maria Santos', '5', '4', '5', '3', '', '', '', '5', '4', '5', '4', '', '', '', '28', '', '', '', ''],
-          ['Jose Rizal', '3', '4', '4', '5', '', '', '', '3', '4', '4', '5', '', '', '', '22', '', '', '', '']
         ];
 
+        // Add registered students to template
+        registeredStudents.slice(0, 10).forEach(student => {
+          templateData.push([
+            student.name, '4', '5', '3', '4', '', '', '', '4', '5', '4', '5', '', '', '', '25', '', '', '', ''
+          ]);
+        });
+
         // Add empty rows for more students
-        for (let i = 0; i < 25; i++) {
+        for (let i = registeredStudents.length; i < 25; i++) {
           templateData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
         }
 
@@ -879,32 +1184,36 @@
             
             // Set student name
             if (dropdown) {
-              // Add student to dropdown if not exists
               const studentName = rowData[0].toString().trim();
-              let optionExists = false;
               
-              for (let j = 0; j < dropdown.options.length; j++) {
-                if (dropdown.options[j].value === studentName) {
-                  optionExists = true;
-                  break;
+              // Try to find matching registered student first
+              const matchingStudent = registeredStudents.find(student => 
+                student.name.toLowerCase() === studentName.toLowerCase()
+              );
+              
+              if (matchingStudent) {
+                dropdown.value = matchingStudent.name;
+              } else {
+                // If not found in registered students, check if option exists
+                let optionExists = false;
+                for (let j = 0; j < dropdown.options.length; j++) {
+                  if (dropdown.options[j].value === studentName) {
+                    optionExists = true;
+                    break;
+                  }
                 }
-              }
-              
-              if (!optionExists) {
-                const newOption = document.createElement('option');
-                newOption.value = studentName;
-                newOption.textContent = studentName;
-                dropdown.appendChild(newOption);
                 
-                // Also add to students list in localStorage
-                const students = JSON.parse(localStorage.getItem('students') || '[]');
-                if (!students.find(s => s.name === studentName)) {
-                  students.push({ name: studentName });
-                  localStorage.setItem('students', JSON.stringify(students));
+                if (!optionExists) {
+                  // Add as a new option (for backward compatibility)
+                  const newOption = document.createElement('option');
+                  newOption.value = studentName;
+                  newOption.textContent = studentName + ' (Not Registered)';
+                  newOption.style.color = '#e74c3c';
+                  dropdown.appendChild(newOption);
                 }
+                
+                dropdown.value = studentName;
               }
-              
-              dropdown.value = studentName;
             }
 
             // Import scores - Written Works (columns 1-4)
@@ -948,152 +1257,44 @@
       e.target.value = ''; // Clear file input
     });
 
-    function updateStudentNamesAcrossSubjects(names) {
-      // This function is kept for compatibility but names are now handled via dropdown
-      const scheduleRaw = localStorage.getItem('schedule');
-      if (!scheduleRaw) return;
-      const subjects = [...new Set(JSON.parse(scheduleRaw).map(s => s.subject).filter(Boolean))];
-
-      // Refresh all dropdowns
-      const dropdowns = document.querySelectorAll('.student-dropdown');
-      dropdowns.forEach(refreshDropdownOptions);
-    }
-
-    // Additional utility functions for better Excel handling
-
-    // Function to validate imported data
-    function validateImportedData(data) {
-      const errors = [];
-      
-      for (let i = 0; i < data.length; i++) {
-        const row = data[i];
-        if (!row || !row[0]) continue;
-        
-        // Check Written Works scores (columns 1-4)
-        for (let j = 1; j <= 4; j++) {
-          if (row[j] !== undefined && row[j] !== null && row[j] !== '') {
-            const score = parseFloat(row[j]);
-            if (isNaN(score) || score < 0 || score > 5) {
-              errors.push(`Row ${i + 1}: Invalid Written Work score in column ${j} (${row[j]}). Should be 0-5.`);
-            }
-          }
-        }
-        
-        // Check Performance Tasks scores (columns 8-11)
-        for (let j = 8; j <= 11; j++) {
-          if (row[j] !== undefined && row[j] !== null && row[j] !== '') {
-            const score = parseFloat(row[j]);
-            if (isNaN(score) || score < 0 || score > 5) {
-              errors.push(`Row ${i + 1}: Invalid Performance Task score in column ${j} (${row[j]}). Should be 0-5.`);
-            }
-          }
-        }
-        
-        // Check Quarterly Assessment score (column 15)
-        if (row[15] !== undefined && row[15] !== null && row[15] !== '') {
-          const score = parseFloat(row[15]);
-          if (isNaN(score) || score < 0 || score > 30) {
-            errors.push(`Row ${i + 1}: Invalid Quarterly Assessment score (${row[15]}). Should be 0-30.`);
-          }
-        }
-      }
-      
-      return errors;
-    }
-
-    // Function to backup current data before import
-    function backupCurrentData() {
-      const currentData = localStorage.getItem(storageKey());
-      if (currentData) {
-        const backupKey = `${storageKey()}_backup_${Date.now()}`;
-        localStorage.setItem(backupKey, currentData);
-        return backupKey;
-      }
-      return null;
-    }
-
-    // Enhanced export function with more options
-    function exportToExcelAdvanced() {
-      const subject = getCurrentSubject();
-      const quarter = getCurrentQuarter();
-      
-      if (!subject || subject === 'Unknown') {
-        showNotification('Please select a subject first', 'error');
-        return;
-      }
-
-      try {
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-        
-        // Get current table data for main sheet
-        const table = document.querySelector('table');
-        const ws1 = XLSX.utils.table_to_sheet(table);
-        
-        // Create summary sheet
-        const summaryData = [
-          ['Grade Summary Report'],
-          ['Subject:', subject],
-          ['Quarter:', quarter],
-          ['Export Date:', new Date().toLocaleString()],
-          [''],
-          ['Student Statistics:']
-        ];
-        
-        const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
-        let totalStudents = 0;
-        let passedStudents = 0;
-        let averageGrade = 0;
-        let totalGrades = 0;
-        
-        rows.forEach(row => {
-          const dropdown = row.querySelector('.student-dropdown');
-          const finalGradeCell = row.querySelector('.final-grade');
-          
-          if (dropdown && dropdown.value && finalGradeCell) {
-            const grade = parseFloat(finalGradeCell.textContent);
-            if (!isNaN(grade) && grade > 0) {
-              totalStudents++;
-              totalGrades += grade;
-              if (grade >= 75) passedStudents++;
-            }
-          }
-        });
-        
-        if (totalStudents > 0) {
-          averageGrade = totalGrades / totalStudents;
-        }
-        
-        summaryData.push(
-          ['Total Students:', totalStudents],
-          ['Passed (≥75):', passedStudents],
-          ['Failed (<75):', totalStudents - passedStudents],
-          ['Class Average:', averageGrade.toFixed(2)],
-          ['Pass Rate:', totalStudents > 0 ? ((passedStudents / totalStudents) * 100).toFixed(1) + '%' : '0%']
-        );
-        
-        const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
-        
-        // Add sheets to workbook
-        XLSX.utils.book_append_sheet(wb, ws1, "Detailed Grades");
-        XLSX.utils.book_append_sheet(wb, ws2, "Summary");
-        
-        // Create filename
-        const filename = `${subject}_${quarter}_Quarter_Complete_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
-        
-        // Save the file
-        XLSX.writeFile(wb, filename);
-        
-        showNotification(`Complete report exported as ${filename}`, 'success');
-      } catch (error) {
-        console.error('Export error:', error);
-        showNotification('Error exporting complete report. Please try again.', 'error');
-      }
-    }
-
     // Initialize everything
     document.getElementById('gradingSelect').onchange = loadGradesFromLocal;
-    initSubjectDropdown();
+    
+    // Initialize the application
+    async function initializeApp() {
+      try {
+        console.log('Initializing application...');
+        
+        // Add test button for debugging
+        addTestButton();
+        
+        // Fetch registered students first
+        console.log('Fetching registered students...');
+        await fetchRegisteredStudents();
+        
+        // Then initialize subject dropdown
+        console.log('Initializing subject dropdown...');
+        initSubjectDropdown();
+        
+        // Update all existing student dropdowns
+        console.log('Updating student dropdowns...');
+        const dropdowns = document.querySelectorAll('.student-dropdown');
+        console.log('Found', dropdowns.length, 'dropdowns to update');
+        
+        dropdowns.forEach((dropdown, index) => {
+          console.log(`Populating dropdown ${index}`);
+          populateStudentDropdown(dropdown);
+        });
+        
+        console.log('Application initialization completed');
+        
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        showNotification('Error loading application data', 'error');
+        // Fallback to localStorage initialization
+        initSubjectDropdown();
+      }
+    }
 
     // Add keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -1114,14 +1315,12 @@
         e.preventDefault();
         document.getElementById('fileInput').click();
       }
-    });
-
-    // Add tooltips to buttons
-    document.addEventListener('DOMContentLoaded', function() {
-      // Add title attributes for tooltips
-      document.querySelector('.btn.template').title = 'Download Excel template (Ctrl+T)';
-      document.querySelector('.btn:not(.template):not(.export)').title = 'Import Excel file (Ctrl+I)';
-      document.querySelector('.btn.export').title = 'Export to Excel (Ctrl+E)';
+      
+      // Ctrl+R for refresh students
+      if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        refreshStudents();
+      }
     });
 
     // Auto-save functionality
@@ -1147,6 +1346,13 @@
       stopAutoSave();
       saveGradesToLocal(); // Final save
     });
+
+    // Initialize the application when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
 
   </script>
 </body>

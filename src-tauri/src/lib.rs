@@ -142,30 +142,7 @@ fn init_database() -> Result<Connection> {
         [],
     )?;
 
-    // Insert some sample students if table is empty
-    let count: i32 = conn.query_row("SELECT COUNT(*) FROM users WHERE role = 'student'", [], |row| {
-        Ok(row.get(0)?)
-    }).unwrap_or(0);
-
-    if count == 0 {
-        let sample_students = vec![
-            ("john.doe@student.edu", "John", "Doe"),
-            ("jane.smith@student.edu", "Jane", "Smith"),
-            ("alice.johnson@student.edu", "Alice", "Johnson"),
-            ("bob.wilson@student.edu", "Bob", "Wilson"),
-            ("maria.garcia@student.edu", "Maria", "Garcia"),
-        ];
-
-        for (email, firstname, lastname) in sample_students {
-            let hashed_password = bcrypt::hash("password123", bcrypt::DEFAULT_COST)
-                .unwrap_or_else(|_| "default_hash".to_string());
-            
-            let _ = conn.execute(
-                "INSERT OR IGNORE INTO users (email, password, role, firstname, lastname) VALUES (?1, ?2, ?3, ?4, ?5)",
-                [email, &hashed_password, "student", firstname, lastname],
-            );
-        }
-    }
+    // No longer inserting dummy data - removed sample student insertion
 
     Ok(conn)
 }

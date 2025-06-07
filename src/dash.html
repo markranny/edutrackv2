@@ -198,6 +198,16 @@
       cursor: not-allowed;
     }
 
+    .no-students-message {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
     table { width:100%; border-collapse:collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     th,td { padding:10px; text-align:center; border:1px solid #ddd; }
     th { background: #34495e; color: white; font-weight: bold; }
@@ -341,6 +351,11 @@
       </div>
     </div>
 
+    <div id="noStudentsMessage" class="no-students-message" style="display: none;">
+      <p><strong>No registered students available.</strong></p>
+      <p>Please register students in the system first, or upload a student list using the Upload button above.</p>
+    </div>
+
     <div class="week-tabs" id="week-tabs"></div>
 
     <div id="attendance-section">
@@ -403,18 +418,27 @@ async function loadRegisteredStudents() {
     registeredStudents = await window.__TAURI__.core.invoke("get_all_students");
     console.log('Loaded registered students:', registeredStudents);
     populateStudentSelect();
+    updateNoStudentsMessage();
   } catch (error) {
     console.error('Error loading registered students:', error);
-    // Use fallback data if backend fails
-    registeredStudents = [
-      { id: 1, email: 'john.doe@student.edu', firstname: 'John', lastname: 'Doe' },
-      { id: 2, email: 'jane.smith@student.edu', firstname: 'Jane', lastname: 'Smith' },
-      { id: 3, email: 'alice.johnson@student.edu', firstname: 'Alice', lastname: 'Johnson' },
-      { id: 4, email: 'bob.wilson@student.edu', firstname: 'Bob', lastname: 'Wilson' },
-      { id: 5, email: 'maria.garcia@student.edu', firstname: 'Maria', lastname: 'Garcia' }
-    ];
+    // No fallback data - just empty array
+    registeredStudents = [];
     populateStudentSelect();
-    showNotification('Using sample student data. Backend connection failed.', true);
+    updateNoStudentsMessage();
+    showNotification('Could not load registered students. Backend connection failed.', true);
+  }
+}
+
+function updateNoStudentsMessage() {
+  const noStudentsMsg = document.getElementById('noStudentsMessage');
+  const studentControls = document.querySelector('.student-controls');
+  
+  if (registeredStudents.length === 0) {
+    noStudentsMsg.style.display = 'block';
+    studentControls.style.display = 'none';
+  } else {
+    noStudentsMsg.style.display = 'none';
+    studentControls.style.display = 'block';
   }
 }
 
@@ -474,6 +498,12 @@ function addSelectedStudent() {
 }
 
 function loadAllRegisteredStudents() {
+  if (registeredStudents.length === 0) {
+    showNotification('No registered students available to load.', true);
+    return;
+  }
+  
+  let addedCount = 0;
   registeredStudents.forEach(student => {
     const fullName = `${student.firstname} ${student.lastname}`;
     if (!attendanceStudents.find(s => s.email === student.email)) {
@@ -484,13 +514,14 @@ function loadAllRegisteredStudents() {
         lastname: student.lastname,
         name: fullName
       });
+      addedCount++;
     }
   });
   
   saveAttendanceStudents();
   renderAttendanceTable();
   populateStudentSelect();
-  showNotification(`Loaded all ${registeredStudents.length} registered students`);
+  showNotification(`Loaded ${addedCount} registered students`);
 }
 
 function removeStudent(index) {

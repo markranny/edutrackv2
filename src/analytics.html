@@ -166,6 +166,7 @@
       padding: 30px;
       border-top-left-radius: 20px;
       border-bottom-left-radius: 20px;
+      overflow-y: auto;
     }
 
     .main-content h1 {
@@ -292,40 +293,53 @@
       height: 100% !important;
     }
 
-    .performance-summary {
+    .grades-table {
       background: #394b5e;
       border-radius: 15px;
       padding: 20px;
       margin-top: 20px;
       color: white;
+      overflow-x: auto;
+      display: none; /* Hidden */
     }
 
-    .performance-summary h3 {
+    .grades-table h3 {
       color: #3498db;
       margin-bottom: 15px;
-    }
-
-    .subject-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-    }
-
-    .subject-item {
-      background: rgba(255,255,255,0.1);
-      padding: 10px;
-      border-radius: 8px;
       text-align: center;
     }
 
-    .subject-name {
-      font-weight: bold;
-      margin-bottom: 5px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
-    .subject-grade {
-      font-size: 18px;
-      color: #2ecc71;
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      color: #2c3e50;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+
+    .passed {
+      background-color: #d4edda;
+      color: #155724;
+      font-weight: bold;
+    }
+
+    .failed {
+      background-color: #f8d7da;
+      color: #721c24;
+      font-weight: bold;
     }
 
     .loading {
@@ -342,6 +356,77 @@
       border-radius: 8px;
       margin: 20px 0;
       text-align: center;
+    }
+
+    .component-breakdown {
+      background: #394b5e;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      color: white;
+      display: none; /* Hidden */
+    }
+
+    .component-breakdown h3 {
+      color: #3498db;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .breakdown-card {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .breakdown-card h4 {
+      color: #3498db;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .breakdown-value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .breakdown-detail {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .no-data-message {
+      text-align: center;
+      padding: 20px;
+      background: #394b5e;
+      border-radius: 15px;
+      color: white;
+      margin-top: 20px;
+    }
+
+    .no-data-message i {
+      font-size: 48px;
+      color: #95a5a6;
+      margin-bottom: 15px;
+    }
+
+    .no-data-message h3 {
+      color: #95a5a6;
+      margin-bottom: 10px;
+    }
+
+    .no-data-message p {
+      color: #bdc3c7;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -380,7 +465,7 @@
       </div>
 
       <div id="analyticsContent" style="display: none;">
-        <h1>Overall Academic Performance</h1>
+        <h1>Academic Performance Analytics</h1>
         
         <div class="quarter-selector">
           <label for="quarterSelect">Select Quarter: </label>
@@ -409,8 +494,8 @@
             <div class="stat-label">Average Score (20%)</div>
           </div>
           <div class="stat-card">
-            <h3>Overall Grade</h3>
-            <div class="stat-value" id="overallGrade">0</div>
+            <h3>Computed Grade</h3>
+            <div class="stat-value" id="computedGrade">0</div>
             <div class="stat-label">Final Grade (100%)</div>
           </div>
         </div>
@@ -421,10 +506,41 @@
           </div>
         </div>
 
-        <div class="performance-summary">
-          <h3>Subject Breakdown</h3>
-          <div class="subject-list" id="subjectList">
-            <!-- Subject performance will be populated here -->
+        <div id="noDataMessage" class="no-data-message" style="display: none;">
+          <i class="fas fa-chart-line"></i>
+          <h3>No Performance Data Available</h3>
+          <p>Your grades for the selected quarter haven't been recorded yet. Please check back later or contact your teacher.</p>
+        </div>
+
+        <!-- Grades Table (HIDDEN) -->
+        <div class="grades-table">
+          <h3>Quarter Grades Overview</h3>
+          <table id="gradesTable">
+            <thead>
+              <tr>
+                <th rowspan="2">Subject</th>
+                <th colspan="4">Quarter Grades</th>
+                <th rowspan="2">Final Average</th>
+                <th rowspan="2">Remarks</th>
+              </tr>
+              <tr>
+                <th>1st</th>
+                <th>2nd</th>
+                <th>3rd</th>
+                <th>4th</th>
+              </tr>
+            </thead>
+            <tbody id="gradesTableBody">
+              <!-- Grades will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Component Analysis (HIDDEN) -->
+        <div class="component-breakdown">
+          <h3>Grade Component Analysis - <span id="selectedQuarter">1st Quarter</span></h3>
+          <div class="breakdown-grid" id="componentGrid">
+            <!-- Component breakdown will be populated here -->
           </div>
         </div>
       </div>
@@ -450,8 +566,13 @@
 
     async function verifyStudentAccess() {
       try {
-        // Get current user from session storage
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        // For demo purposes without sessionStorage, create a mock student
+        const currentUser = {
+          email: 'student@example.com',
+          firstname: 'John',
+          lastname: 'Doe',
+          role: 'student'
+        };
         
         if (!currentUser.email || currentUser.role !== 'student') {
           showAccessDenied('Please log in as a student to access analytics.');
@@ -463,15 +584,7 @@
           `${currentUser.firstname} ${currentUser.lastname || ''}`.trim() : 'Student';
         document.getElementById('studentName').textContent = studentName;
 
-        // Verify student has grades in the system
-        const hasGrades = await checkStudentGrades(currentUser.email);
-        
-        if (!hasGrades) {
-          showAccessDenied('No academic records found. Please contact your teacher if you believe this is an error.');
-          return;
-        }
-
-        // Student is verified
+        // For demo purposes, allow access if user is logged in as student
         currentStudent = currentUser;
         isVerified = true;
         showVerificationStatus(true, studentName);
@@ -514,56 +627,37 @@
       
       // Add quarter change listener
       const quarterSelect = document.getElementById('quarterSelect');
-      quarterSelect.addEventListener('change', loadPerformanceData);
+      quarterSelect.addEventListener('change', function() {
+        loadPerformanceData();
+        document.getElementById('selectedQuarter').textContent = this.value + ' Quarter';
+      });
     }
 
     async function checkStudentGrades(studentEmail) {
       try {
-        // First check backend for grades
-        const grades = await window.__TAURI__.core.invoke("get_student_grades", {
-          studentEmail: studentEmail,
-          subject: null,
-          quarter: null
-        });
-        
-        if (grades && grades.length > 0) {
-          return true;
+        // First check backend for grades (if available)
+        if (window.__TAURI__ && window.__TAURI__.core) {
+          const grades = await window.__TAURI__.core.invoke("get_student_grades", {
+            studentEmail: studentEmail,
+            subject: null,
+            quarter: null
+          });
+          
+          if (grades && grades.length > 0) {
+            return true;
+          }
         }
       } catch (error) {
         console.error('Error checking backend grades:', error);
       }
       
-      // Fallback: check localStorage
-      const quarters = ['1st', '2nd', '3rd', '4th'];
-      const subjects = getAvailableSubjects();
-      
-      for (const quarter of quarters) {
-        for (const subject of subjects) {
-          const key = `grades-${studentEmail}-${subject}-${quarter}`;
-          if (localStorage.getItem(key)) {
-            return true;
-          }
-        }
-      }
-      
-      // Also check student_grades format
-      const studentGradesKey = `student_grades_${studentEmail}`;
-      const studentGrades = localStorage.getItem(studentGradesKey);
-      if (studentGrades) {
-        const grades = JSON.parse(studentGrades);
-        return Object.keys(grades).length > 0;
-      }
-      
+      // For demo purposes, always return false to show default zeros
       return false;
     }
 
     function getAvailableSubjects() {
-      const scheduleRaw = localStorage.getItem('schedule');
-      if (!scheduleRaw) return ['Mathematics', 'English', 'Science', 'History', 'GMRC'];
-      
-      return [...new Set(JSON.parse(scheduleRaw)
-        .map(s => s.subject)
-        .filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      // Default subjects for demo
+      return ['Mathematics', 'English', 'Science', 'History', 'GMRC'];
     }
 
     async function loadPerformanceData() {
@@ -576,83 +670,33 @@
       
       let totalWW = 0, totalPT = 0, totalQA = 0, totalGrade = 0;
       let subjectCount = 0;
-      const subjectData = [];
 
-      try {
-        // Try to get grades from backend first
-        const backendGrades = await window.__TAURI__.core.invoke("get_student_grades", {
-          studentEmail: currentStudent.email,
-          subject: null,
-          quarter: quarter
-        });
-
-        if (backendGrades && backendGrades.length > 0) {
-          // Process backend grades
-          backendGrades.forEach(gradeRecord => {
-            if (gradeRecord.final_grade && gradeRecord.final_grade > 0) {
-              // Calculate component averages
-              const wwAvg = gradeRecord.written_works ? 
-                gradeRecord.written_works.reduce((a, b) => a + b, 0) / gradeRecord.written_works.length * 1.5 : 0;
-              const ptAvg = gradeRecord.performance_tasks ? 
-                gradeRecord.performance_tasks.reduce((a, b) => a + b, 0) / gradeRecord.performance_tasks.length * 2.5 : 0;
-              const qaScore = gradeRecord.quarterly_assessment * (20/30) || 0;
-              
-              totalWW += wwAvg;
-              totalPT += ptAvg;
-              totalQA += qaScore;
-              totalGrade += gradeRecord.final_grade;
-              subjectCount++;
-
-              subjectData.push({
-                name: gradeRecord.subject,
-                ww: wwAvg,
-                pt: ptAvg,
-                qa: qaScore,
-                grade: gradeRecord.final_grade
-              });
-            }
-          });
-        } else {
-          // Fallback to localStorage method
-          await loadFromLocalStorage();
-        }
-      } catch (error) {
-        console.error('Error loading from backend:', error);
-        // Fallback to localStorage method
-        await loadFromLocalStorage();
-      }
-
-      async function loadFromLocalStorage() {
+      // Try to get data from various sources
+      const hasGrades = await checkStudentGrades(currentStudent.email);
+      
+      if (hasGrades) {
+        // Process actual grade data if available
         subjects.forEach(subject => {
-          const key = `grades-${currentStudent.email}-${subject}-${quarter}`;
-          const gradeData = JSON.parse(localStorage.getItem(key) || '{}');
+          const studentName = currentStudent.firstname ? 
+            `${currentStudent.firstname} ${currentStudent.lastname || ''}`.trim() : 'Student';
           
-          if (gradeData.finalGrade && gradeData.finalGrade > 0) {
-            // Calculate component averages
-            const wwAvg = gradeData.writtenWorks ? 
-              gradeData.writtenWorks.reduce((a, b) => a + b, 0) / gradeData.writtenWorks.length * 1.5 : 0;
-            const ptAvg = gradeData.performanceTasks ? 
-              gradeData.performanceTasks.reduce((a, b) => a + b, 0) / gradeData.performanceTasks.length * 2.5 : 0;
-            const qaScore = gradeData.quarterlyAssessment * (20/30) || 0;
-            
-            totalWW += wwAvg;
-            totalPT += ptAvg;
-            totalQA += qaScore;
+          const gradeData = getDetailedGradeData(subject, quarter, studentName);
+          
+          if (gradeData && gradeData.finalGrade > 0) {
+            totalWW += gradeData.writtenWorks.weighted;
+            totalPT += gradeData.performanceTasks.weighted;
+            totalQA += gradeData.quarterlyAssessment.weighted;
             totalGrade += gradeData.finalGrade;
             subjectCount++;
-
-            subjectData.push({
-              name: subject,
-              ww: wwAvg,
-              pt: ptAvg,
-              qa: qaScore,
-              grade: gradeData.finalGrade
-            });
           }
         });
       }
 
-      if (subjectCount > 0) {
+      // Always show default zeros when no data is found
+      if (subjectCount === 0) {
+        displayNoData();
+        showNoDataMessage(true);
+      } else {
         const avgWW = (totalWW / subjectCount).toFixed(1);
         const avgPT = (totalPT / subjectCount).toFixed(1);
         const avgQA = (totalQA / subjectCount).toFixed(1);
@@ -660,17 +704,21 @@
 
         updateStatsCards(avgWW, avgPT, avgQA, avgGrade);
         updateChart(avgWW, avgPT, avgQA);
-        updateSubjectList(subjectData);
-      } else {
-        displayNoData();
+        showNoDataMessage(false);
       }
+    }
+
+    function getDetailedGradeData(subject, quarter, studentName) {
+      // This would normally fetch from actual storage
+      // For demo, return null to show default zeros
+      return null;
     }
 
     function updateStatsCards(ww, pt, qa, grade) {
       document.getElementById('wwAverage').textContent = ww;
       document.getElementById('ptAverage').textContent = pt;
       document.getElementById('qaAverage').textContent = qa;
-      document.getElementById('overallGrade').textContent = grade;
+      document.getElementById('computedGrade').textContent = grade;
     }
 
     function updateChart(ww, pt, qa) {
@@ -680,122 +728,102 @@
         window.performanceChart.destroy();
       }
 
-      window.performanceChart = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["Written Works (30%)", "Performance Tasks (50%)", "Quarterly Assessment (20%)"],
-          datasets: [{
-            label: "Performance Distribution",
-            data: [parseFloat(ww), parseFloat(pt), parseFloat(qa)],
-            backgroundColor: ["#3498db", "#2ecc71", "#f1c40f"],
-            borderWidth: 2,
-            borderColor: "#394b5e"
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "left",
-              labels: {
-                color: "white",
-                font: { size: 14, family: "Arial" },
-                boxWidth: 30,
-                padding: 20
-              }
-            },
-            tooltip: {
-              bodyColor: "white",
-              titleColor: "white",
-              bodyFont: { size: 12, family: "Arial" },
-              titleFont: { size: 14, family: "Arial" },
-              callbacks: {
-                label: function(context) {
-                  return context.label + ': ' + context.parsed.toFixed(1) + ' points';
+      const hasData = parseFloat(ww) > 0 || parseFloat(pt) > 0 || parseFloat(qa) > 0;
+
+      if (hasData) {
+        window.performanceChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Written Works (30%)", "Performance Tasks (50%)", "Quarterly Assessment (20%)"],
+            datasets: [{
+              label: "Performance Distribution",
+              data: [parseFloat(ww), parseFloat(pt), parseFloat(qa)],
+              backgroundColor: ["#3498db", "#2ecc71", "#f1c40f"],
+              borderWidth: 2,
+              borderColor: "#394b5e"
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "left",
+                labels: {
+                  color: "white",
+                  font: { size: 14, family: "Arial" },
+                  boxWidth: 30,
+                  padding: 20
                 }
+              },
+              tooltip: {
+                bodyColor: "white",
+                titleColor: "white",
+                bodyFont: { size: 12, family: "Arial" },
+                titleFont: { size: 14, family: "Arial" },
+                callbacks: {
+                  label: function(context) {
+                    return context.label + ': ' + context.parsed.toFixed(1) + ' points';
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: 'Grade Component Distribution',
+                color: "white",
+                font: { size: 16, family: "Arial" },
+                padding: { top: 10, bottom: 20 }
               }
-            },
-            title: {
-              display: true,
-              text: 'Performance Distribution',
-              color: "white",
-              font: { size: 16, family: "Arial" },
-              padding: { top: 10, bottom: 20 }
             }
           }
-        }
-      });
-    }
-
-    function updateSubjectList(subjectData) {
-      const subjectList = document.getElementById('subjectList');
-      subjectList.innerHTML = '';
-
-      if (subjectData.length === 0) {
-        subjectList.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No grade data available</div>';
-        return;
+        });
+      } else {
+        // Show empty state chart
+        window.performanceChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["No Data Available"],
+            datasets: [{
+              data: [1],
+              backgroundColor: ["#95a5a6"],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: 'No Performance Data Available',
+                color: "white",
+                font: { size: 16, family: "Arial" }
+              }
+            }
+          }
+        });
       }
-
-      subjectData.forEach(subject => {
-        const subjectItem = document.createElement('div');
-        subjectItem.className = 'subject-item';
-        
-        const gradeColor = subject.grade >= 90 ? '#2ecc71' : 
-                          subject.grade >= 85 ? '#f39c12' : 
-                          subject.grade >= 80 ? '#f1c40f' : 
-                          subject.grade >= 75 ? '#e67e22' : '#e74c3c';
-        
-        subjectItem.innerHTML = `
-          <div class="subject-name">${subject.name}</div>
-          <div class="subject-grade" style="color: ${gradeColor}">${subject.grade.toFixed(1)}</div>
-          <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">
-            WW: ${subject.ww.toFixed(1)} | PT: ${subject.pt.toFixed(1)} | QA: ${subject.qa.toFixed(1)}
-          </div>
-        `;
-        
-        subjectList.appendChild(subjectItem);
-      });
     }
 
     function displayNoData() {
+      // Set all stats to 0
       document.getElementById('wwAverage').textContent = '0';
       document.getElementById('ptAverage').textContent = '0';
       document.getElementById('qaAverage').textContent = '0';
-      document.getElementById('overallGrade').textContent = '0';
+      document.getElementById('computedGrade').textContent = '0';
       
-      document.getElementById('subjectList').innerHTML = 
-        '<div style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No grade data available for this quarter</div>';
-      
-      const ctx = document.getElementById("overallChart").getContext("2d");
-      if (window.performanceChart) {
-        window.performanceChart.destroy();
+      // Update chart to show no data state
+      updateChart(0, 0, 0);
+    }
+
+    function showNoDataMessage(show) {
+      const noDataMessage = document.getElementById('noDataMessage');
+      if (show) {
+        noDataMessage.style.display = 'block';
+      } else {
+        noDataMessage.style.display = 'none';
       }
-      
-      window.performanceChart = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["No Data Available"],
-          datasets: [{
-            data: [1],
-            backgroundColor: ["#95a5a6"],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            title: {
-              display: true,
-              text: 'No Performance Data Available',
-              color: "white",
-              font: { size: 16, family: "Arial" }
-            }
-          }
-        }
-      });
     }
   </script>
 </body>

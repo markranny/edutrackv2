@@ -9,7 +9,7 @@
     <style>
         body {
             margin: 0;
-            font-family: 5555555555555555555555;
+            font-family: Arial, sans-serif;
             display: flex;
         }
 
@@ -75,50 +75,69 @@
 
         h1 {
             margin-top: 0;
+            color: #2c3e50;
         }
 
-        form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
         }
 
-        form input, form button {
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        form button {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #e74c3c;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin: 20px 0;
         }
 
         .student-table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
 
         .student-table th, .student-table td {
             border: 1px solid #bdc3c7;
-            padding: 10px;
+            padding: 12px;
             text-align: left;
         }
 
         .student-table th {
             background-color: #34495e;
             color: white;
+            font-weight: bold;
         }
 
-        .student-table td button {
-            background-color: #e74c3c;
+        .student-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .student-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .student-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .student-email {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .student-role {
+            background: #3498db;
             color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            text-transform: uppercase;
         }
 
         .schedule-button-container {
@@ -130,9 +149,31 @@
             background-color: #2980b9;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .schedule-button:hover {
+            background-color: #21618c;
+        }
+
+        .refresh-button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .refresh-button:hover {
+            background-color: #229954;
         }
 
         .modal {
@@ -179,7 +220,7 @@
             background-color: #2ecc71;
             color: white;
             border: none;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
         }
@@ -190,6 +231,33 @@
             right: 15px;
             font-size: 24px;
             cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .student-count {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .no-students {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-students i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #bdc3c7;
         }
     </style>
 </head>
@@ -213,28 +281,41 @@
         <div class="container">
             <div class="schedule-button-container">
                 <button class="schedule-button" onclick="schedule(this)">Schedule</button>
+                <button class="refresh-button" onclick="loadRegisteredStudents()">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
             </div>
-            <h1>Student List</h1>
+            <h1>Registered Student List</h1>
             <div id="current-schedule-label" style="text-align: right; font-weight: bold; margin-bottom: 10px; color: #4CAF50;"></div>
 
-            <form id="student-form">
-                <input type="text" id="student-name" placeholder="Enter student name" required />
-                <input type="text" id="student-id" placeholder="Enter student ID" required />
-                <input type="number" id="student-age" placeholder="Enter student age" required />
-                <button type="submit">Add</button>
-            </form>
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading registered students...
+            </div>
 
-            <table class="student-table">
-                <thead>
-                    <tr>
-                        <th>NAME</th>
-                        <th>ID</th>
-                        <th>Age</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="student-list-table"></tbody>
-            </table>
+            <div id="error-message" class="error" style="display: none;"></div>
+
+            <div id="student-count" class="student-count" style="display: none;"></div>
+
+            <div id="student-table-container" style="display: none;">
+                <table class="student-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-list-table"></tbody>
+                </table>
+            </div>
+
+            <div id="no-students" class="no-students" style="display: none;">
+                <i class="fas fa-users"></i>
+                <h3>No Students Found</h3>
+                <p>No registered students were found in the system.</p>
+                <p>Students can register through the signup page.</p>
+            </div>
         </div>
     </div>
 
@@ -260,86 +341,124 @@
 
 <script>
     let currentScheduleKey = localStorage.getItem('currentScheduleKey') || 'students_default';
-localStorage.setItem('currentScheduleKey', currentScheduleKey);
-let students = JSON.parse(localStorage.getItem(currentScheduleKey)) || [];
+    let registeredStudents = [];
+    let displayedStudents = [];
 
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        localStorage.setItem('currentScheduleKey', currentScheduleKey);
+        updateScheduleLabel();
+        loadRegisteredStudents();
+    });
 
-    const form = document.getElementById('student-form');
-    const studentIdInput = document.getElementById('student-id');
-    const studentNameInput = document.getElementById('student-name');
-    const studentAgeInput = document.getElementById('student-age');
-    const studentListTable = document.getElementById('student-list-table');
-    const label = document.getElementById('current-schedule-label');
-    if (currentScheduleKey) {
-    const parts = currentScheduleKey.split('_');
-    if (parts.length === 4 && parts[1] && parts[2] && parts[3]) {
-        label.textContent = `${parts[1]} - ${parts[2]} - ${parts[3]}`;
-    } else {
-        label.textContent = ''; // Hide the label if key is not valid
+    function updateScheduleLabel() {
+        const label = document.getElementById('current-schedule-label');
+        if (currentScheduleKey && currentScheduleKey !== 'students_default') {
+            const parts = currentScheduleKey.split('_');
+            if (parts.length === 4 && parts[1] && parts[2] && parts[3]) {
+                label.textContent = `${parts[1]} - ${parts[2]} - ${parts[3]}`;
+                label.style.display = 'block';
+            } else {
+                label.style.display = 'none';
+            }
+        } else {
+            label.textContent = 'All Registered Students';
+            label.style.display = 'block';
+        }
     }
-}
 
-
-    function saveStudents() {
-    if (!currentScheduleKey) return;
-    localStorage.setItem(currentScheduleKey, JSON.stringify(students)); // Save to specific schedule
-}
+    async function loadRegisteredStudents() {
+        showLoading();
+        
+        try {
+            // Get all registered students from backend
+            registeredStudents = await window.__TAURI__.core.invoke("get_all_students");
+            console.log('Loaded registered students:', registeredStudents);
+            
+            if (registeredStudents && registeredStudents.length > 0) {
+                displayedStudents = registeredStudents;
+                renderStudents();
+                showStudentTable();
+            } else {
+                showNoStudents();
+            }
+        } catch (error) {
+            console.error('Error loading registered students:', error);
+            showError('Failed to load registered students: ' + error);
+        }
+    }
 
     function renderStudents() {
-        studentListTable.innerHTML = '';
-        students.forEach((student, index) => {
+        const tableBody = document.getElementById('student-list-table');
+        const studentCount = document.getElementById('student-count');
+        
+        // Clear existing rows
+        tableBody.innerHTML = '';
+        
+        // Update student count
+        studentCount.textContent = `Total Students: ${displayedStudents.length}`;
+        
+        // Render each student
+        displayedStudents.forEach((student, index) => {
             const tr = document.createElement('tr');
-
+            
+            // Student number
+            const numberTd = document.createElement('td');
+            numberTd.textContent = index + 1;
+            tr.appendChild(numberTd);
+            
+            // Student name (First Name + Last Name)
             const nameTd = document.createElement('td');
-            nameTd.textContent = student.name;
-
-            const idTd = document.createElement('td');
-            idTd.textContent = student.id;
-
-            const ageTd = document.createElement('td');
-            ageTd.textContent = student.age;
-
-            const actionTd = document.createElement('td');
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.className = 'delete-btn';
-            deleteBtn.onclick = function (e) {
-    e.preventDefault();
-    students.splice(index, 1); // Remove the student from the array
-    saveStudents(); // Save the updated list to localStorage
-    renderStudents(); // Re-render the table
-};
-
-            actionTd.appendChild(deleteBtn);
+            const fullName = `${student.firstname || ''} ${student.lastname || ''}`.trim();
+            nameTd.innerHTML = `<span class="student-name">${fullName || 'N/A'}</span>`;
             tr.appendChild(nameTd);
-            tr.appendChild(idTd);
-            tr.appendChild(ageTd);
-            tr.appendChild(actionTd);
-
-            studentListTable.appendChild(tr);
+            
+            // Email
+            const emailTd = document.createElement('td');
+            emailTd.innerHTML = `<span class="student-email">${student.email}</span>`;
+            tr.appendChild(emailTd);
+            
+            // Role
+            const roleTd = document.createElement('td');
+            roleTd.innerHTML = `<span class="student-role">${student.role}</span>`;
+            tr.appendChild(roleTd);
+            
+            tableBody.appendChild(tr);
         });
     }
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
+    function showLoading() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('student-table-container').style.display = 'none';
+        document.getElementById('student-count').style.display = 'none';
+        document.getElementById('no-students').style.display = 'none';
+    }
 
+    function showError(message) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-message').textContent = message;
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('student-table-container').style.display = 'none';
+        document.getElementById('student-count').style.display = 'none';
+        document.getElementById('no-students').style.display = 'none';
+    }
 
-        const id = studentIdInput.value.trim();
-        const name = studentNameInput.value.trim();
-        const age = studentAgeInput.value.trim();
+    function showStudentTable() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('student-table-container').style.display = 'block';
+        document.getElementById('student-count').style.display = 'block';
+        document.getElementById('no-students').style.display = 'none';
+    }
 
-        if (!id || !name || !age) return;
-
-        students.push({ id, name, age });
-        saveStudents();
-        renderStudents();
-
-        studentIdInput.value = '';
-        studentNameInput.value = '';
-        studentAgeInput.value = '';
-    });
-
-    renderStudents();
+    function showNoStudents() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('student-table-container').style.display = 'none';
+        document.getElementById('student-count').style.display = 'none';
+        document.getElementById('no-students').style.display = 'block';
+    }
 
     function goBack() {
         localStorage.removeItem('currentScheduleKey');
@@ -366,53 +485,57 @@ let students = JSON.parse(localStorage.getItem(currentScheduleKey)) || [];
     }
 
     function schedule() {
-    let scheduleData = JSON.parse(localStorage.getItem('schedule')) || [];
+        let scheduleData = JSON.parse(localStorage.getItem('schedule')) || [];
 
-    // Map days to numeric values for sorting
-    const dayOrder = {
-        Monday: 1,
-        Tuesday: 2,
-        Wednesday: 3,
-        Thursday: 4,
-        Friday: 5,
-        Saturday: 6,
-        Sunday: 7
-    };
+        // Map days to numeric values for sorting
+        const dayOrder = {
+            Monday: 1,
+            Tuesday: 2,
+            Wednesday: 3,
+            Thursday: 4,
+            Friday: 5,
+            Saturday: 6,
+            Sunday: 7
+        };
 
-    // Helper to parse time string into a comparable format
-    function parseTime(timeStr) {
-        const [time, modifier] = timeStr.split(' ');
-        let [hours, minutes] = time.split(':').map(Number);
+        // Helper to parse time string into a comparable format
+        function parseTime(timeStr) {
+            const [time, modifier] = timeStr.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
 
-        if (modifier === 'PM' && hours !== 12) hours += 12;
-        if (modifier === 'AM' && hours === 12) hours = 0;
+            if (modifier === 'PM' && hours !== 12) hours += 12;
+            if (modifier === 'AM' && hours === 12) hours = 0;
 
-        return hours * 60 + minutes;
+            return hours * 60 + minutes;
+        }
+
+        // Sort by day and then by time
+        scheduleData.sort((a, b) => {
+            const dayDiff = (dayOrder[a.day] || 99) - (dayOrder[b.day] || 99);
+            if (dayDiff !== 0) return dayDiff;
+            return parseTime(a.time) - parseTime(b.time);
+        });
+
+        const modalBody = document.getElementById('modal-schedule-body');
+        modalBody.innerHTML = '';
+
+        if (scheduleData.length === 0) {
+            modalBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No schedules available</td></tr>';
+        } else {
+            scheduleData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.subject}</td>
+                    <td>${item.day}</td>
+                    <td>${item.time}</td>
+                    <td><button class="schedule-button" onclick="enterSchedule(${index})">Select</button></td>
+                `;
+                modalBody.appendChild(row);
+            });
+        }
+
+        document.getElementById('schedule-modal').style.display = 'flex';
     }
-
-    // Sort by day and then by time
-    scheduleData.sort((a, b) => {
-        const dayDiff = (dayOrder[a.day] || 99) - (dayOrder[b.day] || 99);
-        if (dayDiff !== 0) return dayDiff;
-        return parseTime(a.time) - parseTime(b.time);
-    });
-
-    const modalBody = document.getElementById('modal-schedule-body');
-    modalBody.innerHTML = '';
-
-    scheduleData.forEach((item, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${item.subject}</td>
-            <td>${item.day}</td>
-            <td>${item.time}</td>
-            <td><button class="schedule-button" onclick="enterSchedule(${index})">Enter</button></td>
-        `;
-        modalBody.appendChild(row);
-    });
-
-    document.getElementById('schedule-modal').style.display = 'flex';
-}
 
     function closeModal() {
         document.getElementById('schedule-modal').style.display = 'none';
@@ -425,14 +548,14 @@ let students = JSON.parse(localStorage.getItem(currentScheduleKey)) || [];
         currentScheduleKey = `students_${item.subject}_${item.day}_${item.time}`;
         localStorage.setItem('currentScheduleKey', currentScheduleKey);
 
-        students = JSON.parse(localStorage.getItem(currentScheduleKey)) || [];
-        renderStudents();
-
-        label.textContent = `${item.subject} - ${item.day} - ${item.time}`;
-
+        updateScheduleLabel();
         closeModal();
+        
+        // Filter students based on the selected schedule if needed
+        // For now, we'll show all registered students regardless of schedule
+        displayedStudents = registeredStudents;
+        renderStudents();
     }
-    
 </script>
 
 </body>
