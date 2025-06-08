@@ -70,6 +70,10 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
+    #gradingSelect:active {
+      transform: scale(0.95);
+    }
+
     .main-content {
       flex-grow: 1;
       padding: 30px;
@@ -138,6 +142,10 @@
       transform: scale(1.05);
     }
 
+    .btn:active {
+      transform: scale(0.95);
+    }
+
     .btn.export {
       background: #27ae60;
     }
@@ -178,6 +186,10 @@
     #subjectSelect:hover {
       background: #2579b8;
       transform: scale(1.05);
+    }
+
+    #subjectSelect:active {
+      transform: scale(0.95);
     }
 
     table {
@@ -273,6 +285,58 @@
       color: #960f0f;
     }
 
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      position: absolute;
+      right: 15px;
+      top: 10px;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    .modal h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .modal p {
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
     .notification {
       position: fixed;
       top: 20px;
@@ -302,14 +366,14 @@
       opacity: 1;
     }
 
-    .loading-message {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-      font-size: 16px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      margin: 20px 0;
+    .alert-box {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+      font-size: 14px;
     }
 
   </style>
@@ -354,6 +418,16 @@
           Check Database
         </button>
         
+        <button class="btn template" onclick="downloadTemplate()">
+          <i class="fas fa-download"></i>
+          Download Template
+        </button>
+        
+        <button class="btn" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-upload"></i>
+          Import Excel
+        </button>
+        
         <button class="btn export" onclick="exportToExcel()">
           <i class="fas fa-file-excel"></i>
           Export to Excel
@@ -363,11 +437,12 @@
       </div>
     </div>
 
-    <div id="loadingMessage" class="loading-message">
-      <i class="fas fa-spinner fa-spin"></i> Loading registered students...
+    <!-- Alert about database save being disabled -->
+    <div class="alert-box">
+      <strong>Notice:</strong> Database saving is temporarily disabled to prevent logout issues. All data is saved locally and can be exported to Excel.
     </div>
 
-    <table id="gradesTable" style="display: none;">
+    <table>
       <thead>
         <tr>
           <th rowspan="2" class="written-works-header">STUDENTS</th>
@@ -395,26 +470,54 @@
     </table>
   </div>
 
+  <!-- Template Info Modal -->
+  <div id="templateModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('templateModal')">&times;</span>
+      <h2><i class="fas fa-info-circle"></i> Template Download</h2>
+      <p><strong>How to use the template:</strong></p>
+      <ul style="text-align: left; margin-left: 20px;">
+        <li>The first column should contain student names</li>
+        <li>Columns 2-5: Written Works scores (1-4)</li>
+        <li>Columns 9-12: Performance Tasks scores (1-4)</li>
+        <li>Column 16: Quarterly Assessment score</li>
+        <li>All other columns will be calculated automatically</li>
+        <li>Save as Excel format (.xlsx) before importing</li>
+      </ul>
+      <p><strong>Note:</strong> The template includes sample data that you can replace with actual student information.</p>
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn template" onclick="proceedWithDownload()">
+          <i class="fas fa-download"></i>
+          Download Template
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification -->
   <div id="notification" class="notification"></div>
 
   <script>
-    // Check if Tauri API is available
-    const isTauriApp = typeof window.__TAURI__ !== 'undefined' && window.__TAURI__.core;
+    // Global variables
     let registeredStudents = [];
-    let invoke;
+    let invoke = null;
 
-    // Initialize Tauri API if available
-    if (isTauriApp) {
+    // Initialize Tauri API
+    if (typeof window.__TAURI__ !== 'undefined' && window.__TAURI__.core && window.__TAURI__.core.invoke) {
       invoke = window.__TAURI__.core.invoke;
-      console.log('Tauri API loaded successfully');
+      console.log('Tauri API loaded successfully via __TAURI__.core.invoke');
+    } else if (typeof window.__TAURI__ !== 'undefined' && window.__TAURI__.invoke) {
+      invoke = window.__TAURI__.invoke;
+      console.log('Tauri API loaded successfully via __TAURI__.invoke');
     } else {
       console.log('Tauri API not available - running in web mode');
       invoke = null;
     }
 
+    // Profile icon click handler
     document.getElementById('profileIcon').onclick = () => location.href = 'profile.html';
 
+    // Utility functions
     const getCurrentSubject = () => document.getElementById('subjectSelect').value || 'Unknown';
     const getCurrentQuarter = () => document.getElementById('gradingSelect').value;
     const storageKey = () => `grades-${getCurrentSubject()}-${getCurrentQuarter()}`;
@@ -431,39 +534,40 @@
       }, 3000);
     }
 
-    // Show/hide loading message
-    function showLoadingMessage(show = true) {
-      const loading = document.getElementById('loadingMessage');
-      const table = document.getElementById('gradesTable');
-      
-      if (show) {
-        loading.style.display = 'block';
-        table.style.display = 'none';
-      } else {
-        loading.style.display = 'none';
-        table.style.display = 'table';
-      }
+    // Modal functions
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
     }
 
     // Fetch registered students from database
     async function fetchRegisteredStudents() {
+      console.log('Starting fetchRegisteredStudents()');
+      
       if (!invoke) {
         console.log('Tauri invoke not available, using localStorage fallback');
-        return getAllStudentsLocal();
+        const localStudents = getAllStudentsLocal();
+        registeredStudents = localStudents;
+        return localStudents;
       }
 
       try {
         showNotification('Loading registered students...', 'info');
+        console.log('Calling invoke("get_all_students")');
         
         const students = await invoke('get_all_students');
-        console.log('Raw students from database:', students);
+        console.log('Raw students response from database', students);
         
         if (!students || students.length === 0) {
+          console.log('No students found in database, using local fallback');
           showNotification('No students found in database. Using local data.', 'info');
-          return getAllStudentsLocal();
+          const localStudents = getAllStudentsLocal();
+          registeredStudents = localStudents;
+          return localStudents;
         }
         
-        registeredStudents = students.map(student => {
+        // Process students data
+        registeredStudents = students.map((student, index) => {
+          console.log(`Processing student ${index}`, student);
           const fullName = `${student.firstname || ''} ${student.lastname || ''}`.trim();
           return {
             id: student.id,
@@ -474,76 +578,118 @@
           };
         });
         
-        console.log('Processed students:', registeredStudents);
+        console.log('Successfully processed students', registeredStudents);
         showNotification(`Loaded ${registeredStudents.length} registered students`, 'success');
         return registeredStudents;
+        
       } catch (error) {
         console.error('Error fetching students from database:', error);
         showNotification(`Error loading students: ${error.message}. Using local data.`, 'error');
-        return getAllStudentsLocal();
+        const localStudents = getAllStudentsLocal();
+        registeredStudents = localStudents;
+        return localStudents;
       }
     }
 
     // Fallback function for localStorage students
     function getAllStudentsLocal() {
-      const students = JSON.parse(localStorage.getItem('attendanceStudents') || '[]');
-      return students.filter(student => student.name && student.name.trim() !== '');
+      console.log('Getting students from localStorage');
+      try {
+        const students = JSON.parse(localStorage.getItem('students') || '[]');
+        const scheduleKeys = Object.keys(localStorage).filter(key => key.startsWith('students_'));
+        
+        scheduleKeys.forEach(key => {
+          const scheduleStudents = JSON.parse(localStorage.getItem(key) || '[]');
+          scheduleStudents.forEach(student => {
+            if (!students.find(s => s.name === student.name)) {
+              students.push(student);
+            }
+          });
+        });
+        
+        const validStudents = students.filter(student => student.name && student.name.trim() !== '');
+        console.log('Local students found', validStudents);
+        return validStudents;
+      } catch (error) {
+        console.log('Error reading from localStorage', error);
+        return [];
+      }
     }
 
     // Check database status
     async function checkDatabaseStatus() {
+      console.log('=== Starting database status check ===');
+      
       if (!invoke) {
         showNotification('Tauri API not available - running in web mode', 'info');
+        console.log('Tauri API not available');
         return;
       }
 
       try {
-        console.log('=== DATABASE STATUS CHECK ===');
-        
+        console.log('Testing database connection...');
         const students = await invoke('get_all_students');
-        console.log('Database response:', students);
+        console.log('Database query result', students);
         
         if (students && students.length > 0) {
           showNotification(`Database OK: Found ${students.length} students`, 'success');
-          console.log('Students found:', students);
+          console.log(`Database contains ${students.length} students`);
+          students.forEach((student, index) => {
+            console.log(`Student ${index + 1}`, {
+              id: student.id,
+              email: student.email,
+              firstname: student.firstname,
+              lastname: student.lastname,
+              role: student.role
+            });
+          });
         } else {
-          showNotification('Database OK but no students found.', 'info');
+          showNotification('Database OK but no students found. Try creating test students.', 'info');
           console.log('No students found in database');
         }
         
       } catch (error) {
-        console.error('Database status check failed:', error);
+        console.log('Database status check failed', error);
         showNotification(`Database Error: ${error.message || error}`, 'error');
       }
+      
+      console.log('=== Database status check completed ===');
     }
 
     // Refresh students function
     async function refreshStudents() {
-      console.log('=== REFRESHING STUDENTS ===');
-      showLoadingMessage(true);
+      console.log('=== Starting student refresh ===');
       
-      const students = await fetchRegisteredStudents();
+      try {
+        const students = await fetchRegisteredStudents();
+        console.log('Students fetched for refresh', students);
+        
+        // Update all existing dropdowns
+        const dropdowns = document.querySelectorAll('.student-dropdown');
+        console.log(`Found ${dropdowns.length} dropdowns to update`);
+        
+        dropdowns.forEach((dropdown, index) => {
+          const currentValue = dropdown.value;
+          console.log(`Updating dropdown ${index}, current value: "${currentValue}"`);
+          populateStudentDropdown(dropdown, students);
+          if (currentValue) {
+            dropdown.value = currentValue; // Restore selection if still valid
+          }
+        });
+        
+        showNotification(`Refreshed ${students.length} students in dropdowns`, 'success');
+        
+      } catch (error) {
+        console.log('Error in refreshStudents', error);
+        showNotification('Error refreshing students', 'error');
+      }
       
-      console.log('Students to populate:', students);
-      
-      // Update all existing dropdowns
-      const dropdowns = document.querySelectorAll('.student-dropdown');
-      console.log('Found dropdowns:', dropdowns.length);
-      
-      dropdowns.forEach((dropdown, index) => {
-        const currentValue = dropdown.value;
-        console.log(`Updating dropdown ${index}, current value:`, currentValue);
-        populateStudentDropdown(dropdown, students);
-        dropdown.value = currentValue; // Restore selection if still valid
-      });
-      
-      showLoadingMessage(false);
-      console.log('=== STUDENTS REFRESH COMPLETED ===');
+      console.log('=== Student refresh completed ===');
     }
 
     // Populate student dropdown with registered students
     function populateStudentDropdown(dropdown, students = registeredStudents) {
-      console.log('Populating dropdown with students:', students);
+      console.log('Populating dropdown', { studentsCount: students ? students.length : 0 });
       
       // Clear existing options except the first one (Select Student)
       while (dropdown.children.length > 1) {
@@ -553,7 +699,7 @@
       // Add student options
       if (students && students.length > 0) {
         students.forEach((student, index) => {
-          console.log(`Adding student ${index}:`, student);
+          console.log(`Adding student ${index} to dropdown`, student);
           const option = document.createElement('option');
           option.value = student.name || student.email;
           option.textContent = student.name || `${student.firstname} ${student.lastname}`.trim() || student.email;
@@ -561,7 +707,7 @@
           option.setAttribute('data-id', student.id || '');
           dropdown.appendChild(option);
         });
-        console.log(`Added ${students.length} students to dropdown`);
+        console.log(`Successfully added ${students.length} students to dropdown`);
       } else {
         console.log('No students to add to dropdown');
         // Add a message when no students are found
@@ -574,33 +720,56 @@
       }
     }
 
-    function initSubjectDropdown() {
-      const select = document.getElementById('subjectSelect');
-      const scheduleRaw = localStorage.getItem('schedule');
-      if (!scheduleRaw) return;
+    // Enhanced Initialize subject dropdown
+function initSubjectDropdown() {
+  console.log('Initializing subject dropdown');
+  
+  const select = document.getElementById('subjectSelect');
+  const scheduleRaw = localStorage.getItem('schedule');
+  
+  if (!scheduleRaw) {
+    console.log('No schedule found in localStorage');
+    return;
+  }
 
-      const subjects = [...new Set(JSON.parse(scheduleRaw)
-                          .map(s => s.subject)
-                          .filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  try {
+    const subjects = [...new Set(JSON.parse(scheduleRaw)
+                        .map(s => s.subject)
+                        .filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
-      if (!subjects.length) return;
-
-      select.innerHTML = '';
-      subjects.forEach((sub, i) => {
-        const o = document.createElement('option');
-        o.value = sub;
-        o.textContent = `📚 ${sub}`;
-        select.appendChild(o);
-        if (i === 0) select.value = sub;
-      });
-
-      select.hidden = false;
-      select.onchange = loadGradesFromLocal;
-      loadGradesFromLocal();
+    if (!subjects.length) {
+      console.log('No subjects found in schedule');
+      return;
     }
 
+    console.log('Subjects found', subjects);
+
+    select.innerHTML = '';
+    subjects.forEach((sub, i) => {
+      const o = document.createElement('option');
+      o.value = sub;
+      o.textContent = `📚 ${sub}`;
+      select.appendChild(o);
+      if (i === 0) select.value = sub;
+    });
+
+    select.hidden = false;
+    select.onchange = function() {
+      console.log('Subject changed to:', this.value);
+      loadGradesFromLocal();
+    };
+    
+    // Load grades for the initial subject
+    loadGradesFromLocal();
+  } catch (error) {
+    console.log('Error parsing schedule from localStorage', error);
+  }
+}
+
+    // Get student data body element
     const studentDataBody = document.getElementById('student-data');
 
+    // Create student row function
     function createStudentRow() {
       const tr = document.createElement('tr');
 
@@ -617,11 +786,18 @@
       emptyOption.textContent = 'Select Student';
       dropdown.appendChild(emptyOption);
       
-      // Will be populated later with registered students
+      // Populate with registered students
+      populateStudentDropdown(dropdown);
       
+      // SIMPLIFIED dropdown change handler - NO DATABASE SAVE
       dropdown.onchange = function() {
-        saveGradesToLocal();
-        saveStudentGrades(this.value, tr);
+        console.log(`Student dropdown changed to: "${this.value}"`);
+        // Only save to localStorage - NO database save to prevent logout
+        try {
+          saveGradesToLocal();
+        } catch (error) {
+          console.log('Error saving to localStorage', error);
+        }
       };
       
       nameCell.appendChild(dropdown);
@@ -664,317 +840,181 @@
       return tr;
     }
 
-    // Create initial rows
+    // Create initial student rows
     function createInitialRows() {
-      // Clear existing rows except header
-      [...studentDataBody.querySelectorAll('tr:not(.section-title)')].forEach(r => r.remove());
-      const header = studentDataBody.querySelector('.section-title');
+      console.log('Creating initial student rows');
       
-      // Create 30 empty rows
+      // Clear existing rows except section title
+      [...studentDataBody.querySelectorAll('tr:not(.section-title)')].forEach(r => r.remove());
+      
+      const header = studentDataBody.querySelector('.section-title');
       for (let i = 0; i < 30; i++) {
-        header.after(createStudentRow());
+        const row = createStudentRow();
+        header.after(row);
       }
+      
+      console.log('Created 30 initial student rows');
     }
 
+    // Utility function for number parsing
     const num = v => isNaN(parseFloat(v)) ? 0 : +parseFloat(v);
 
+    // Save grades to localStorage ONLY
     function saveGradesToLocal() {
       try {
         const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
         const data = rows.map(r => {
-          try {
-            const cells = [...r.children];
-            return cells.map((c, index) => {
-              try {
-                if (index === 0) {
-                  // For the first cell (student name), get the dropdown value
-                  const dropdown = c.querySelector('select');
-                  return dropdown ? dropdown.value : '';
-                }
-                return c.textContent || '';
-              } catch (cellError) {
-                console.warn('Error processing cell:', cellError);
-                return '';
-              }
-            });
-          } catch (rowError) {
-            console.warn('Error processing row:', rowError);
-            return [];
-          }
+          const cells = [...r.children];
+          return cells.map((c, index) => {
+            if (index === 0) {
+              // For the first cell (student name), get the dropdown value
+              const dropdown = c.querySelector('select');
+              return dropdown ? dropdown.value : '';
+            }
+            return c.textContent;
+          });
         });
-        
-        const key = storageKey();
-        localStorage.setItem(key, JSON.stringify(data));
-        console.log('Grades saved to localStorage successfully');
-        
+        localStorage.setItem(storageKey(), JSON.stringify(data));
+        console.log('Grades saved to localStorage', { key: storageKey(), dataLength: data.length });
       } catch (error) {
-        console.error('Error saving grades to localStorage:', error);
-        // Don't rethrow to prevent page crashes
+        console.log('Error saving grades to localStorage', error);
       }
     }
 
-    // Save student grades to database if in Tauri environment
-    async function saveStudentGrades(studentName, row) {
-      if (!studentName || !row) return;
-      
-      try {
-        const subject = getCurrentSubject();
-        const quarter = getCurrentQuarter();
-        
-        // Get the final grade from the row - with error handling
-        const finalGradeCell = row.querySelector('.final-grade');
-        if (!finalGradeCell) {
-          console.warn('No final grade cell found for student:', studentName);
-          return;
-        }
-        
-        const finalGrade = parseFloat(finalGradeCell.textContent) || 0;
-        
-        // Save to localStorage for local backup
-        try {
-          const studentGradesKey = `student_grades_${studentName}`;
-          let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
-          
-          if (!studentGrades[subject]) {
-            studentGrades[subject] = {};
-          }
-          
-          studentGrades[subject][quarter] = finalGrade;
-          localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
-        } catch (localStorageError) {
-          console.warn('Error saving to localStorage:', localStorageError);
-        }
+    // Enhanced Load grades from localStorage function
+function loadGradesFromLocal() {
+  console.log('Loading grades from localStorage');
+  
+  try {
+    const stored = localStorage.getItem(storageKey());
+    const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
 
-        // Save to database if in Tauri environment - with comprehensive error handling
-        if (invoke && finalGrade > 0) {
-          try {
-            // Get student email from dropdown option
-            const dropdown = row.querySelector('.student-dropdown');
-            if (!dropdown) {
-              console.warn('No dropdown found for student:', studentName);
-              return;
-            }
-            
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
-            if (!selectedOption) {
-              console.warn('No selected option found for student:', studentName);
-              return;
-            }
-            
-            const studentEmail = selectedOption.getAttribute('data-email');
-            
-            if (!studentEmail) {
-              console.warn('No email found for student:', studentName);
-              return;
-            }
-
-            // Collect grade data with error handling
-            const wwElements = row.querySelectorAll('[data-ww]');
-            const ptElements = row.querySelectorAll('[data-pt]');
-            const qaElement = row.querySelector('[data-qa="score"]');
-            
-            const writtenWorks = wwElements ? [...wwElements].map(td => num(td.textContent || 0)) : [0, 0, 0, 0];
-            const performanceTasks = ptElements ? [...ptElements].map(td => num(td.textContent || 0)) : [0, 0, 0, 0];
-            const quarterlyAssessment = qaElement ? num(qaElement.textContent || 0) : 0;
-
-            // Save to database - wrapped in timeout to prevent hanging
-            const savePromise = invoke('save_student_grades', {
-              studentEmail: studentEmail,
-              subject: subject,
-              quarter: quarter,
-              writtenWorks: writtenWorks,
-              performanceTasks: performanceTasks,
-              quarterlyAssessment: quarterlyAssessment,
-              finalGrade: finalGrade
-            });
-
-            // Set a timeout for the database operation
-            Promise.race([
-              savePromise,
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Database save timeout')), 5000)
-              )
-            ]).then(() => {
-              console.log(`Grades saved to database for ${studentName}`);
-            }).catch(error => {
-              console.warn('Database save failed or timed out:', error);
-              // Don't show notification for every save failure to avoid spam
-            });
-
-          } catch (error) {
-            console.warn('Error preparing data for database save:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Critical error in saveStudentGrades:', error);
-        // Don't rethrow the error to prevent page crashes
-      }
-    }
-
-    function loadGradesFromLocal() {
-      const stored = localStorage.getItem(storageKey());
-      const rows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
-
-      // Reset all rows
-      rows.forEach(r => {
-        const dropdown = r.querySelector('.student-dropdown');
-        if (dropdown) dropdown.value = '';
-        [...r.children].forEach((td, i) => {
-          if (i !== 0) td.textContent = '';
-        });
+    // Reset all rows first
+    rows.forEach(r => {
+      const dropdown = r.querySelector('.student-dropdown');
+      if (dropdown) dropdown.value = '';
+      [...r.children].forEach((td, i) => {
+        if (i !== 0) td.textContent = '';
       });
-
-      if (!stored) {
-        rows.forEach(recalcRow);
-        return;
-      }
-
-      JSON.parse(stored).forEach((rowData, i) => {
-        const row = rows[i];
-        if (!row) return;
-        
-        rowData.forEach((text, j) => {
-          if (j === 0) {
-            // Set dropdown value for student name
-            const dropdown = row.querySelector('.student-dropdown');
-            if (dropdown) {
-              dropdown.value = text;
-            }
-          } else if (row.children[j]) {
-            row.children[j].textContent = text;
-          }
-        });
-      });
-
-      rows.forEach(recalcRow);
-    }
-
-    function recalcRow(row) {
-      try {
-        // Safely get written works scores
-        const wwElements = row.querySelectorAll('[data-ww]');
-        const ww = wwElements ? [...wwElements].map(td => {
-          const value = td.textContent || '0';
-          return num(value);
-        }) : [0, 0, 0, 0];
-        
-        const wwT = ww.reduce((a, b) => a + b, 0);
-        
-        // Safely update written works calculated fields
-        const wwTotalElement = row.querySelector('.ww-total');
-        const wwPsElement = row.querySelector('.ww-ps');
-        const wwWaElement = row.querySelector('.ww-wa');
-        
-        if (wwTotalElement) wwTotalElement.textContent = wwT.toFixed(2);
-        if (wwPsElement) wwPsElement.textContent = (wwT * 5).toFixed(2);
-        if (wwWaElement) wwWaElement.textContent = (wwT * 1.5).toFixed(2);
-
-        // Safely get performance tasks scores
-        const ptElements = row.querySelectorAll('[data-pt]');
-        const pt = ptElements ? [...ptElements].map(td => {
-          const value = td.textContent || '0';
-          return num(value);
-        }) : [0, 0, 0, 0];
-        
-        const ptT = pt.reduce((a, b) => a + b, 0);
-        
-        // Safely update performance tasks calculated fields
-        const ptTotalElement = row.querySelector('.pt-total');
-        const ptPsElement = row.querySelector('.pt-ps');
-        const ptWaElement = row.querySelector('.pt-wa');
-        
-        if (ptTotalElement) ptTotalElement.textContent = ptT.toFixed(2);
-        if (ptPsElement) ptPsElement.textContent = (ptT * 5).toFixed(2);
-        if (ptWaElement) ptWaElement.textContent = (ptT * 2.5).toFixed(2);
-
-        // Safely get quarterly assessment score
-        const qaElement = row.querySelector('[data-qa="score"]');
-        const qa = qaElement ? num(qaElement.textContent || '0') : 0;
-        
-        const QA_PS_FACTOR = 100 / 30;
-        const QA_WA_FACTOR = 20 / 30;
-
-        // Safely update quarterly assessment calculated fields
-        const qaPsElement = row.querySelector('.qa-ps');
-        const qaWaElement = row.querySelector('.qa-wa');
-        
-        if (qaPsElement) qaPsElement.textContent = (qa * QA_PS_FACTOR).toFixed(2);
-        if (qaWaElement) qaWaElement.textContent = (qa * QA_WA_FACTOR).toFixed(2);
-
-        // Calculate and update final grades
-        const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR);
-        
-        const initialGradeElement = row.querySelector('.initial-grade');
-        const finalGradeElement = row.querySelector('.final-grade');
-        
-        if (initialGradeElement) initialGradeElement.textContent = initial.toFixed(2);
-        if (finalGradeElement) finalGradeElement.textContent = initial >= 0 ? initial.toFixed(2) : '#N/A';
-        
-        // Save student grades when recalculating - with error handling
-        try {
-          const dropdown = row.querySelector('.student-dropdown');
-          if (dropdown && dropdown.value) {
-            // Use setTimeout to prevent blocking the UI
-            setTimeout(() => {
-              saveStudentGrades(dropdown.value, row);
-            }, 100);
-          }
-        } catch (saveError) {
-          console.warn('Error saving student grades:', saveError);
-          // Don't rethrow to prevent page crashes
-        }
-        
-      } catch (error) {
-        console.error('Error in recalcRow:', error);
-        // Don't rethrow the error to prevent page crashes
-      }
-    }
-
-    // Add input event listener with better error handling
-    studentDataBody.addEventListener('input', e => {
-      try {
-        if (!e.target.isContentEditable) return;
-        const tr = e.target.closest('tr');
-        if (!tr) return;
-        
-        // Debounce the calculation to prevent too many updates
-        clearTimeout(window.recalcTimeout);
-        window.recalcTimeout = setTimeout(() => {
-          try {
-            recalcRow(tr);
-            saveGradesToLocal();
-          } catch (recalcError) {
-            console.warn('Error during recalculation:', recalcError);
-          }
-        }, 300); // Wait 300ms after user stops typing
-        
-      } catch (error) {
-        console.error('Error in input event handler:', error);
-        // Don't rethrow to prevent page crashes
-      }
     });
 
-    // Add change event listener for dropdowns
-    studentDataBody.addEventListener('change', e => {
-      try {
-        if (e.target.classList.contains('student-dropdown')) {
-          const tr = e.target.closest('tr');
-          if (tr) {
-            // Small delay to ensure UI is updated
-            setTimeout(() => {
-              try {
-                saveGradesToLocal();
-                if (e.target.value) {
-                  saveStudentGrades(e.target.value, tr);
-                }
-              } catch (saveError) {
-                console.warn('Error saving after dropdown change:', saveError);
+    if (!stored) {
+      console.log('No stored grades found, recalculating rows');
+      rows.forEach(recalcRow);
+      return;
+    }
+
+    console.log('Loading stored grades data');
+    const storedData = JSON.parse(stored);
+    
+    storedData.forEach((rowData, i) => {
+      const row = rows[i];
+      if (!row) return;
+      
+      rowData.forEach((text, j) => {
+        if (j === 0) {
+          // Set dropdown value for student name
+          const dropdown = row.querySelector('.student-dropdown');
+          if (dropdown && text) {
+            // IMPORTANT FIX: Check if the student option exists in dropdown
+            let optionExists = false;
+            for (let k = 0; k < dropdown.options.length; k++) {
+              if (dropdown.options[k].value === text) {
+                optionExists = true;
+                break;
               }
-            }, 100);
+            }
+            
+            if (optionExists) {
+              dropdown.value = text;
+              console.log(`Restored student selection: ${text} for row ${i}`);
+            } else {
+              // If student not found in registered students, add as unregistered option
+              console.log(`Student "${text}" not found in registered list, adding as unregistered`);
+              const newOption = document.createElement('option');
+              newOption.value = text;
+              newOption.textContent = text + ' (Not Registered)';
+              newOption.style.color = '#e74c3c';
+              dropdown.appendChild(newOption);
+              dropdown.value = text;
+            }
+          }
+        } else if (row.children[j]) {
+          row.children[j].textContent = text;
+        }
+      });
+    });
+
+    rows.forEach(recalcRow);
+    console.log('Grades loaded and recalculated');
+  } catch (error) {
+    console.log('Error loading grades from localStorage', error);
+  }
+}
+
+
+    // Recalculate row function - SIMPLIFIED NO DATABASE SAVE
+    function recalcRow(row) {
+      try {
+        const ww = [...row.querySelectorAll('[data-ww]')].map(td => num(td.textContent));
+        const wwT = ww.reduce((a, b) => a + b, 0);
+        row.querySelector('.ww-total').textContent = wwT.toFixed(2);
+        row.querySelector('.ww-ps').textContent   = (wwT * 5).toFixed(2);
+        row.querySelector('.ww-wa').textContent   = (wwT * 1.5).toFixed(2);
+
+        const pt = [...row.querySelectorAll('[data-pt]')].map(td => num(td.textContent));
+        const ptT = pt.reduce((a, b) => a + b, 0);
+        row.querySelector('.pt-total').textContent = ptT.toFixed(2);
+        row.querySelector('.pt-ps').textContent   = (ptT * 5).toFixed(2);
+        row.querySelector('.pt-wa').textContent   = (ptT * 2.5).toFixed(2);
+
+        const qa = num(row.querySelector('[data-qa="score"]').textContent || 0);
+        const QA_PS_FACTOR = 100 / 30;
+        const QA_WA_FACTOR =  20 / 30;
+
+        row.querySelector('.qa-ps').textContent = (qa * QA_PS_FACTOR).toFixed(2);
+        row.querySelector('.qa-wa').textContent = (qa * QA_WA_FACTOR).toFixed(2);
+
+        const initial = (wwT * 1.5) + (ptT * 2.5) + (qa * QA_WA_FACTOR);
+        row.querySelector('.initial-grade').textContent = initial.toFixed(2);
+        row.querySelector('.final-grade').textContent   = initial >= 0 ? initial.toFixed(2) : '#N/A';
+        
+        // NO DATABASE SAVE - only localStorage backup
+        const dropdown = row.querySelector('.student-dropdown');
+        if (dropdown && dropdown.value) {
+          try {
+            const studentGradesKey = `student_grades_${dropdown.value}`;
+            let studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+            const subject = getCurrentSubject();
+            const quarter = getCurrentQuarter();
+            const finalGrade = parseFloat(row.querySelector('.final-grade').textContent) || 0;
+            
+            if (!studentGrades[subject]) {
+              studentGrades[subject] = {};
+            }
+            studentGrades[subject][quarter] = finalGrade;
+            localStorage.setItem(studentGradesKey, JSON.stringify(studentGrades));
+          } catch (error) {
+            console.log('Error saving student grade backup', error);
           }
         }
       } catch (error) {
-        console.error('Error in dropdown change handler:', error);
+        console.log('Error in recalcRow', error);
+      }
+    }
+
+    // Add event listener for input changes - SIMPLIFIED
+    studentDataBody.addEventListener('input', e => {
+      if (!e.target.isContentEditable) return;
+      
+      const tr = e.target.closest('tr');
+      if (!tr) return;
+      
+      try {
+        recalcRow(tr);
+        saveGradesToLocal();
+      } catch (error) {
+        console.log('Error in input handler', error);
       }
     });
 
@@ -1000,55 +1040,280 @@
         XLSX.writeFile(wb, filename);
         
         showNotification(`Grades exported successfully as ${filename}`, 'success');
+        console.log('Excel export completed', { filename, subject, quarter });
       } catch (error) {
         console.error('Export error:', error);
         showNotification('Error exporting grades. Please try again.', 'error');
       }
     }
 
+    // Download template function
+    function downloadTemplate() {
+      document.getElementById('templateModal').style.display = 'flex';
+    }
+
+    // Proceed with template download
+    function proceedWithDownload() {
+      try {
+        console.log('Starting template download');
+        
+        // Create template data with proper structure
+        const templateData = [
+          // Header rows
+          ['STUDENTS', 'WRITTEN WORKS (30%)', '', '', '', '', '', '', 'PERFORMANCE TASKS (50%)', '', '', '', '', '', '', 'QUARTERLY ASSESSMENT (20%)', '', '', 'INITIAL GRADE', 'QUARTERLY GRADE'],
+          ['NAME', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', '1', '2', '3', '4', 'TOTAL', 'PS', 'WA', 'SCORE', 'PS', 'WA', '100', '100'],
+          ['Student Name', '5', '5', '5', '5', '20', '100', '30', '5', '5', '5', '5', '20', '100', '50', '30', '100', '20', '100', '100'],
+        ];
+
+        // Add registered students to template
+        registeredStudents.slice(0, 10).forEach(student => {
+          templateData.push([
+            student.name, '4', '5', '3', '4', '', '', '', '4', '5', '4', '5', '', '', '', '25', '', '', '', ''
+          ]);
+        });
+
+        // Add empty rows for more students
+        for (let i = registeredStudents.length; i < 25; i++) {
+          templateData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+        }
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(templateData);
+        
+        // Set column widths
+        ws['!cols'] = [
+          {wch: 20}, // Student name
+          ...Array(19).fill({wch: 8}) // Other columns
+        ];
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Grades Template");
+        
+        // Create filename
+        const subject = getCurrentSubject();
+        const quarter = getCurrentQuarter();
+        const filename = `Grades_Template_${subject}_${quarter}_Quarter.xlsx`;
+        
+        // Save file
+        XLSX.writeFile(wb, filename);
+        
+        closeModal('templateModal');
+        showNotification(`Template downloaded as ${filename}`, 'success');
+        console.log('Template download completed', { filename });
+      } catch (error) {
+        console.error('Template download error:', error);
+        showNotification('Error downloading template. Please try again.', 'error');
+      }
+    }
+
+    // Enhanced file import function
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      console.log('Starting file import', { fileName: file.name, fileSize: file.size });
+
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const wb = XLSX.read(evt.target.result, { type: 'binary' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          
+          console.log('Excel file read successfully', { rowCount: data.length });
+          
+          if (!data.length) {
+            showNotification('The Excel file appears to be empty', 'error');
+            return;
+          }
+
+          // Find the data starting row (skip headers)
+          let startRow = 0;
+          for (let i = 0; i < Math.min(5, data.length); i++) {
+            if (data[i] && data[i][0] && 
+                typeof data[i][0] === 'string' && 
+                !data[i][0].toLowerCase().includes('student') &&
+                !data[i][0].toLowerCase().includes('name') &&
+                data[i][0].trim() !== '') {
+              startRow = i;
+              break;
+            }
+          }
+
+          console.log(`Data starts at row ${startRow}`);
+
+          const studentRows = [...studentDataBody.querySelectorAll('tr:not(.section-title)')];
+          let importedCount = 0;
+
+          // Clear existing data first
+          studentRows.forEach(row => {
+            const dropdown = row.querySelector('.student-dropdown');
+            if (dropdown) dropdown.value = '';
+            [...row.children].forEach((td, i) => {
+              if (i !== 0 && td.isContentEditable) td.textContent = '';
+            });
+          });
+
+          // Import data starting from the detected row
+          for (let i = startRow; i < data.length && importedCount < studentRows.length; i++) {
+            const rowData = data[i];
+            if (!rowData || !rowData[0] || rowData[0].toString().trim() === '') continue;
+
+            const studentRow = studentRows[importedCount];
+            const dropdown = studentRow.querySelector('.student-dropdown');
+            
+            // Set student name
+            if (dropdown) {
+              const studentName = rowData[0].toString().trim();
+              
+              // Try to find matching registered student first
+              const matchingStudent = registeredStudents.find(student => 
+                student.name.toLowerCase() === studentName.toLowerCase()
+              );
+              
+              if (matchingStudent) {
+                dropdown.value = matchingStudent.name;
+                console.log(`Matched registered student: ${matchingStudent.name}`);
+              } else {
+                // If not found in registered students, check if option exists
+                let optionExists = false;
+                for (let j = 0; j < dropdown.options.length; j++) {
+                  if (dropdown.options[j].value === studentName) {
+                    optionExists = true;
+                    break;
+                  }
+                }
+                
+                if (!optionExists) {
+                  // Add as a new option (for backward compatibility)
+                  const newOption = document.createElement('option');
+                  newOption.value = studentName;
+                  newOption.textContent = studentName + ' (Not Registered)';
+                  newOption.style.color = '#e74c3c';
+                  dropdown.appendChild(newOption);
+                }
+                
+                dropdown.value = studentName;
+                console.log(`Added unregistered student: ${studentName}`);
+              }
+            }
+
+            // Import scores - Written Works (columns 1-4)
+            const wwCells = studentRow.querySelectorAll('[data-ww]');
+            for (let j = 0; j < Math.min(4, wwCells.length); j++) {
+              if (rowData[j + 1] !== undefined && rowData[j + 1] !== null && rowData[j + 1] !== '') {
+                wwCells[j].textContent = rowData[j + 1].toString();
+              }
+            }
+
+            // Import scores - Performance Tasks (columns 8-11)
+            const ptCells = studentRow.querySelectorAll('[data-pt]');
+            for (let j = 0; j < Math.min(4, ptCells.length); j++) {
+              if (rowData[j + 8] !== undefined && rowData[j + 8] !== null && rowData[j + 8] !== '') {
+                ptCells[j].textContent = rowData[j + 8].toString();
+              }
+            }
+
+            // Import Quarterly Assessment score (column 15)
+            const qaCell = studentRow.querySelector('[data-qa="score"]');
+            if (qaCell && rowData[15] !== undefined && rowData[15] !== null && rowData[15] !== '') {
+              qaCell.textContent = rowData[15].toString();
+            }
+
+            importedCount++;
+          }
+
+          // Recalculate all rows after import
+          studentRows.forEach(recalcRow);
+          saveGradesToLocal();
+
+          showNotification(`Successfully imported ${importedCount} student records`, 'success');
+          console.log('Import completed', { importedCount });
+          
+        } catch (error) {
+          console.error('Import error:', error);
+          showNotification('Error importing file. Please check the file format and try again.', 'error');
+        }
+      };
+      
+      reader.readAsBinaryString(file);
+      e.target.value = ''; // Clear file input
+    });
+
     // Initialize everything
     document.getElementById('gradingSelect').onchange = loadGradesFromLocal;
     
     // Initialize the application
-    async function initializeApp() {
-      try {
-        console.log('Initializing application...');
-        
-        // Create initial table rows
-        createInitialRows();
-        
-        // Fetch registered students first
-        console.log('Fetching registered students...');
-        await fetchRegisteredStudents();
-        
-        // Then initialize subject dropdown
-        console.log('Initializing subject dropdown...');
-        initSubjectDropdown();
-        
-        // Update all existing student dropdowns
-        console.log('Updating student dropdowns...');
-        const dropdowns = document.querySelectorAll('.student-dropdown');
-        console.log('Found', dropdowns.length, 'dropdowns to update');
-        
-        dropdowns.forEach((dropdown, index) => {
-          console.log(`Populating dropdown ${index}`);
-          populateStudentDropdown(dropdown);
-        });
-        
-        // Hide loading message and show table
-        showLoadingMessage(false);
-        
-        console.log('Application initialization completed');
-        
-      } catch (error) {
-        console.error('Error initializing app:', error);
-        showNotification('Error loading application data', 'error');
-        // Show table even if there's an error
-        showLoadingMessage(false);
-        // Fallback to localStorage initialization
-        initSubjectDropdown();
+    // Enhanced Initialize the application
+async function initializeApp() {
+  try {
+    console.log('=== APPLICATION INITIALIZATION STARTED ===');
+    
+    // Create initial student rows
+    createInitialRows();
+    
+    // Fetch registered students FIRST
+    console.log('Fetching registered students...');
+    await fetchRegisteredStudents();
+    
+    // Update all existing student dropdowns with registered students
+    console.log('Updating student dropdowns...');
+    const dropdowns = document.querySelectorAll('.student-dropdown');
+    console.log(`Found ${dropdowns.length} dropdowns to populate`);
+    
+    dropdowns.forEach((dropdown, index) => {
+      console.log(`Populating dropdown ${index + 1}/${dropdowns.length}`);
+      populateStudentDropdown(dropdown);
+    });
+    
+    // Initialize subject dropdown
+    console.log('Initializing subject dropdown...');
+    initSubjectDropdown();
+    
+    // IMPORTANT: Load grades AFTER dropdowns are populated
+    console.log('Loading saved grades...');
+    loadGradesFromLocal();
+    
+    console.log('=== APPLICATION INITIALIZATION COMPLETED ===');
+    showNotification('Application loaded successfully (Database save disabled)', 'info');
+    
+  } catch (error) {
+    console.error('Error initializing app:', error);
+    showNotification('Error loading application data', 'error');
+    // Fallback to localStorage initialization
+    createInitialRows();
+    initSubjectDropdown();
+    loadGradesFromLocal();
+  }
+}
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl+E for export
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        exportToExcel();
       }
-    }
+      
+      // Ctrl+T for template download
+      if (e.ctrlKey && e.key === 't') {
+        e.preventDefault();
+        downloadTemplate();
+      }
+      
+      // Ctrl+I for import
+      if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        document.getElementById('fileInput').click();
+      }
+      
+      // Ctrl+R for refresh students
+      if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        refreshStudents();
+      }
+    });
 
     // Auto-save functionality
     let autoSaveInterval;
@@ -1056,6 +1321,7 @@
       // Save every 30 seconds
       autoSaveInterval = setInterval(() => {
         saveGradesToLocal();
+        console.log('Auto-save completed');
       }, 30000);
     }
 
@@ -1072,23 +1338,6 @@
     window.addEventListener('beforeunload', () => {
       stopAutoSave();
       saveGradesToLocal(); // Final save
-    });
-
-    // Global error handler to prevent page crashes
-    window.addEventListener('error', function(e) {
-      console.error('Global error caught:', e.error);
-      showNotification('An error occurred, but the page is still functional', 'error');
-      // Prevent the error from causing a logout
-      e.preventDefault();
-      return false;
-    });
-
-    // Unhandled promise rejection handler
-    window.addEventListener('unhandledrejection', function(e) {
-      console.error('Unhandled promise rejection:', e.reason);
-      showNotification('A background operation failed, but you can continue working', 'error');
-      // Prevent the error from causing a logout
-      e.preventDefault();
     });
 
     // Initialize the application when DOM is loaded

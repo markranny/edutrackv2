@@ -293,115 +293,11 @@
       height: 100% !important;
     }
 
-    .grades-table {
-      background: #394b5e;
-      border-radius: 15px;
-      padding: 20px;
-      margin-top: 20px;
-      color: white;
-      overflow-x: auto;
-      display: none; /* Hidden */
-    }
-
-    .grades-table h3 {
-      color: #3498db;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-      color: #2c3e50;
-    }
-
-    th {
-      background: #3498db;
-      color: white;
-      font-weight: bold;
-    }
-
-    .passed {
-      background-color: #d4edda;
-      color: #155724;
-      font-weight: bold;
-    }
-
-    .failed {
-      background-color: #f8d7da;
-      color: #721c24;
-      font-weight: bold;
-    }
-
     .loading {
       text-align: center;
       padding: 40px;
       color: #666;
       font-size: 18px;
-    }
-
-    .error-message {
-      background: #e74c3c;
-      color: white;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 20px 0;
-      text-align: center;
-    }
-
-    .component-breakdown {
-      background: #394b5e;
-      border-radius: 15px;
-      padding: 20px;
-      margin-top: 20px;
-      color: white;
-      display: none; /* Hidden */
-    }
-
-    .component-breakdown h3 {
-      color: #3498db;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-
-    .breakdown-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .breakdown-card {
-      background: rgba(255,255,255,0.1);
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .breakdown-card h4 {
-      color: #3498db;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-
-    .breakdown-value {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .breakdown-detail {
-      font-size: 12px;
-      opacity: 0.8;
     }
 
     .no-data-message {
@@ -428,6 +324,70 @@
       color: #bdc3c7;
       font-size: 14px;
     }
+
+    .subject-breakdown {
+      background: #394b5e;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      color: white;
+    }
+
+    .subject-breakdown h3 {
+      color: #3498db;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .subject-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .subject-card {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .subject-card h4 {
+      color: #3498db;
+      margin-bottom: 10px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .grade-components {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .component {
+      text-align: center;
+      flex: 1;
+    }
+
+    .component-value {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+
+    .final-grade {
+      text-align: center;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .final-grade-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #f1c40f;
+    }
   </style>
 </head>
 <body>
@@ -436,8 +396,8 @@
       <div class="profile">
         <img src="assets/student1.png" alt="Student" />
         <h3 id="studentName">Student</h3>
-        <div id="verificationStatus" class="verification-status">
-          <i class="fas fa-spinner fa-spin"></i> Verifying...
+        <div id="verificationStatus" class="verification-status verified">
+          <i class="fas fa-check-circle"></i> Verified Student
         </div>
       </div>
       <nav>
@@ -452,19 +412,11 @@
     </aside>
 
     <main class="main-content">
-      <div id="loadingContent" class="loading">
+      <div id="loadingContent" class="loading" style="display: none;">
         <i class="fas fa-spinner fa-spin"></i> Loading your academic performance...
       </div>
 
-      <div id="accessDeniedContent" class="access-denied" style="display: none;">
-        <i class="fas fa-exclamation-triangle"></i>
-        <h2>Access Restricted</h2>
-        <p>We couldn't verify your student registration in our system. Analytics are only available to registered students with valid academic records.</p>
-        <p>If you believe this is an error, please contact your teacher or school administrator.</p>
-        <a href="login.html" class="login-btn">Return to Login</a>
-      </div>
-
-      <div id="analyticsContent" style="display: none;">
+      <div id="analyticsContent">
         <h1>Academic Performance Analytics</h1>
         
         <div class="quarter-selector">
@@ -512,35 +464,10 @@
           <p>Your grades for the selected quarter haven't been recorded yet. Please check back later or contact your teacher.</p>
         </div>
 
-        <!-- Grades Table (HIDDEN) -->
-        <div class="grades-table">
-          <h3>Quarter Grades Overview</h3>
-          <table id="gradesTable">
-            <thead>
-              <tr>
-                <th rowspan="2">Subject</th>
-                <th colspan="4">Quarter Grades</th>
-                <th rowspan="2">Final Average</th>
-                <th rowspan="2">Remarks</th>
-              </tr>
-              <tr>
-                <th>1st</th>
-                <th>2nd</th>
-                <th>3rd</th>
-                <th>4th</th>
-              </tr>
-            </thead>
-            <tbody id="gradesTableBody">
-              <!-- Grades will be populated by JavaScript -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Component Analysis (HIDDEN) -->
-        <div class="component-breakdown">
-          <h3>Grade Component Analysis - <span id="selectedQuarter">1st Quarter</span></h3>
-          <div class="breakdown-grid" id="componentGrid">
-            <!-- Component breakdown will be populated here -->
+        <div class="subject-breakdown" id="subjectBreakdown" style="display: none;">
+          <h3>Subject Performance Breakdown - <span id="selectedQuarter">1st Quarter</span></h3>
+          <div class="subject-grid" id="subjectGrid">
+            <!-- Subject breakdown will be populated here -->
           </div>
         </div>
       </div>
@@ -550,11 +477,53 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     let currentStudent = null;
-    let isVerified = false;
+    let performanceChart = null;
 
     document.addEventListener("DOMContentLoaded", function () {
-      // Check if user is logged in and is a student
-      verifyStudentAccess();
+      // Get current student from sessionStorage (actual logged-in user)
+      console.log('=== ANALYTICS DEBUG START ===');
+      
+      const sessionData = sessionStorage.getItem('currentUser');
+      console.log('Raw sessionStorage data:', sessionData);
+      
+      if (!sessionData) {
+        console.error('No currentUser found in sessionStorage!');
+        // Redirect to login if no user session
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        currentStudent = JSON.parse(sessionData);
+        console.log('Parsed currentStudent:', currentStudent);
+      } catch (error) {
+        console.error('Error parsing sessionStorage data:', error);
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Verify this is a student
+      if (!currentStudent || currentStudent.role !== 'student') {
+        console.error('User is not a student:', currentStudent);
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Update student name display
+      const studentName = currentStudent.firstname ? 
+        `${currentStudent.firstname} ${currentStudent.lastname || ''}`.trim() : 'Student';
+      console.log('Student name for display:', studentName);
+      document.getElementById('studentName').textContent = studentName;
+
+      // Load performance data
+      loadPerformanceData();
+
+      // Add quarter change listener
+      const quarterSelect = document.getElementById('quarterSelect');
+      quarterSelect.addEventListener('change', function() {
+        loadPerformanceData();
+        document.getElementById('selectedQuarter').textContent = this.value + ' Quarter';
+      });
 
       const profileDiv = document.querySelector(".profile");
       if (profileDiv) {
@@ -564,174 +533,322 @@
       }
     });
 
-    async function verifyStudentAccess() {
-      try {
-        // For demo purposes without sessionStorage, create a mock student
-        const currentUser = {
-          email: 'student@example.com',
-          firstname: 'John',
-          lastname: 'Doe',
-          role: 'student'
-        };
-        
-        if (!currentUser.email || currentUser.role !== 'student') {
-          showAccessDenied('Please log in as a student to access analytics.');
-          return;
+    function getDetailedGradeData(subject, quarter, studentName) {
+      console.log(`\n=== Getting grade data for: ${studentName}, Subject: ${subject}, Quarter: ${quarter} ===`);
+      
+      // Try to get data from student-specific storage first
+      const studentGradesKey = `student_grades_${studentName}`;
+      console.log('Checking studentGradesKey:', studentGradesKey);
+      const studentGrades = JSON.parse(localStorage.getItem(studentGradesKey) || '{}');
+      console.log('Student grades from storage:', studentGrades);
+      
+      if (studentGrades[subject] && studentGrades[subject][`${quarter}_details`]) {
+        console.log('Found student-specific grade data:', studentGrades[subject][`${quarter}_details`]);
+        return studentGrades[subject][`${quarter}_details`];
+      }
+      
+      // Try to get from teacher's grade storage
+      const key = `grades-${subject}-${quarter}`;
+      console.log('Checking teacher storage key:', key);
+      const gradeData = JSON.parse(localStorage.getItem(key) || '[]');
+      console.log('Teacher grade data:', gradeData);
+      
+      if (!gradeData || gradeData.length === 0) {
+        console.log('No teacher grade data found');
+        return null;
+      }
+      
+      // List all student names in the grade data for debugging
+      console.log('All students in grade data:');
+      gradeData.forEach((row, index) => {
+        if (Array.isArray(row) && row.length > 0) {
+          console.log(`  Row ${index}: "${row[0]}"`);
         }
-
-        // Update student name display
-        const studentName = currentUser.firstname ? 
-          `${currentUser.firstname} ${currentUser.lastname || ''}`.trim() : 'Student';
-        document.getElementById('studentName').textContent = studentName;
-
-        // For demo purposes, allow access if user is logged in as student
-        currentStudent = currentUser;
-        isVerified = true;
-        showVerificationStatus(true, studentName);
-        showAnalyticsContent();
-        loadPerformanceData();
-
-      } catch (error) {
-        console.error('Verification error:', error);
-        showAccessDenied('Unable to verify student access. Please try again later.');
-      }
-    }
-
-    function showVerificationStatus(verified, name) {
-      const statusDiv = document.getElementById('verificationStatus');
-      if (verified) {
-        statusDiv.className = 'verification-status verified';
-        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Verified Student';
-      } else {
-        statusDiv.className = 'verification-status not-verified';
-        statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Not Verified';
-      }
-    }
-
-    function showAccessDenied(message) {
-      document.getElementById('loadingContent').style.display = 'none';
-      document.getElementById('analyticsContent').style.display = 'none';
-      document.getElementById('accessDeniedContent').style.display = 'block';
-      
-      if (message) {
-        document.querySelector('#accessDeniedContent p').textContent = message;
-      }
-      
-      showVerificationStatus(false);
-    }
-
-    function showAnalyticsContent() {
-      document.getElementById('loadingContent').style.display = 'none';
-      document.getElementById('accessDeniedContent').style.display = 'none';
-      document.getElementById('analyticsContent').style.display = 'block';
-      
-      // Add quarter change listener
-      const quarterSelect = document.getElementById('quarterSelect');
-      quarterSelect.addEventListener('change', function() {
-        loadPerformanceData();
-        document.getElementById('selectedQuarter').textContent = this.value + ' Quarter';
       });
-    }
-
-    async function checkStudentGrades(studentEmail) {
-      try {
-        // First check backend for grades (if available)
-        if (window.__TAURI__ && window.__TAURI__.core) {
-          const grades = await window.__TAURI__.core.invoke("get_student_grades", {
-            studentEmail: studentEmail,
-            subject: null,
-            quarter: null
-          });
-          
-          if (grades && grades.length > 0) {
-            return true;
-          }
-        }
-      } catch (error) {
-        console.error('Error checking backend grades:', error);
-      }
       
-      // For demo purposes, always return false to show default zeros
-      return false;
+      // Find the student's row in the grade data
+      const studentRow = gradeData.find(row => {
+        if (Array.isArray(row) && row.length > 0) {
+          const name = row[0];
+          const matches = name === studentName || 
+                 name === `${currentStudent.firstname} ${currentStudent.lastname}`.trim() ||
+                 name.toLowerCase().includes(currentStudent.firstname?.toLowerCase() || '') ||
+                 name.toLowerCase().includes(currentStudent.lastname?.toLowerCase() || '');
+          
+          if (matches) {
+            console.log(`Found matching student row: "${name}" matches "${studentName}"`);
+          }
+          
+          return matches;
+        }
+        return false;
+      });
+
+      if (!studentRow) {
+        console.log('No matching student row found');
+        return null;
+      }
+
+      console.log('Student row data:', studentRow);
+
+      // Extract grade components based on the structure from the teacher's grading system
+      const gradeComponents = {
+        writtenWorks: {
+          scores: [
+            parseFloat(studentRow[1]) || 0,
+            parseFloat(studentRow[2]) || 0,
+            parseFloat(studentRow[3]) || 0,
+            parseFloat(studentRow[4]) || 0
+          ],
+          total: parseFloat(studentRow[5]) || 0,
+          percentage: parseFloat(studentRow[6]) || 0,
+          weighted: parseFloat(studentRow[7]) || 0
+        },
+        performanceTasks: {
+          scores: [
+            parseFloat(studentRow[8]) || 0,
+            parseFloat(studentRow[9]) || 0,
+            parseFloat(studentRow[10]) || 0,
+            parseFloat(studentRow[11]) || 0
+          ],
+          total: parseFloat(studentRow[12]) || 0,
+          percentage: parseFloat(studentRow[13]) || 0,
+          weighted: parseFloat(studentRow[14]) || 0
+        },
+        quarterlyAssessment: {
+          score: parseFloat(studentRow[15]) || 0,
+          percentage: parseFloat(studentRow[16]) || 0,
+          weighted: parseFloat(studentRow[17]) || 0
+        },
+        finalGrade: parseFloat(studentRow[18]) || 0
+      };
+      
+      console.log(`Extracted grade components for ${subject}-${quarter}:`, gradeComponents);
+      console.log(`Raw student row data:`, studentRow);
+      console.log(`Final grade from row[18]: ${studentRow[18]} (type: ${typeof studentRow[18]})`);
+      console.log(`Parsed final grade: ${gradeComponents.finalGrade} (type: ${typeof gradeComponents.finalGrade})`);
+      
+      return gradeComponents;
     }
 
     function getAvailableSubjects() {
-      // Default subjects for demo
-      return ['Mathematics', 'English', 'Science', 'History', 'GMRC'];
+      console.log('\n=== Getting available subjects ===');
+      
+      // Get subjects from schedule
+      const scheduleData = JSON.parse(localStorage.getItem('schedule') || '[]');
+      console.log('Schedule data from localStorage:', scheduleData);
+      
+      const subjects = [...new Set(scheduleData.map(s => s.subject).filter(Boolean))];
+      console.log('Extracted subjects from schedule:', subjects);
+      
+      if (subjects.length === 0) {
+        // Default subjects if no schedule found
+        const defaultSubjects = ['Mathematics', 'English', 'Science', 'History', 'GMRC'];
+        console.log('No subjects in schedule, using defaults:', defaultSubjects);
+        return defaultSubjects;
+      }
+      
+      return subjects;
     }
 
     async function loadPerformanceData() {
-      if (!isVerified || !currentStudent) return;
-
+      console.log('\n=== LOADING PERFORMANCE DATA ===');
+      
+      if (!currentStudent) {
+        console.error('No current student available');
+        return;
+      }
+      
       const quarter = document.getElementById('quarterSelect').value;
       const subjects = getAvailableSubjects();
+      const studentName = currentStudent.firstname ? 
+        `${currentStudent.firstname} ${currentStudent.lastname || ''}`.trim() : 'Student';
       
-      console.log(`Loading data for ${currentStudent.email}, quarter: ${quarter}`);
+      console.log(`Loading data for:
+        - Student: ${studentName}
+        - Email: ${currentStudent.email}
+        - Quarter: ${quarter}
+        - Subjects: ${subjects.join(', ')}`);
       
       let totalWW = 0, totalPT = 0, totalQA = 0, totalGrade = 0;
       let subjectCount = 0;
+      let subjectDetails = [];
 
-      // Try to get data from various sources
-      const hasGrades = await checkStudentGrades(currentStudent.email);
-      
-      if (hasGrades) {
-        // Process actual grade data if available
-        subjects.forEach(subject => {
-          const studentName = currentStudent.firstname ? 
-            `${currentStudent.firstname} ${currentStudent.lastname || ''}`.trim() : 'Student';
+      // Try to get data from Tauri backend first
+      if (window.__TAURI__ && window.__TAURI__.core) {
+        try {
+          console.log('Attempting to get data from Tauri backend...');
+          const grades = await window.__TAURI__.core.invoke("get_student_grades", {
+            studentEmail: currentStudent.email,
+            subject: null,
+            quarter: quarter
+          });
           
+          if (grades && grades.length > 0) {
+            console.log('Found backend data:', grades);
+            grades.forEach(grade => {
+              const wwAvg = grade.written_works.reduce((sum, score) => sum + score, 0) / grade.written_works.length;
+              const ptAvg = grade.performance_tasks.reduce((sum, score) => sum + score, 0) / grade.performance_tasks.length;
+              
+              const wwWeighted = wwAvg * 0.3;
+              const ptWeighted = ptAvg * 0.5;
+              const qaWeighted = grade.quarterly_assessment * 0.2;
+              
+              // Use the actual final grade directly instead of calculating it
+              totalWW += wwWeighted;
+              totalPT += ptWeighted;
+              totalQA += qaWeighted;
+              totalGrade += grade.final_grade; // Use the stored final grade
+              subjectCount++;
+              
+              subjectDetails.push({
+                subject: grade.subject,
+                ww: wwWeighted,
+                pt: ptWeighted,
+                qa: qaWeighted,
+                finalGrade: grade.final_grade // Use the stored final grade
+              });
+            });
+          } else {
+            console.log('No backend data found');
+          }
+        } catch (error) {
+          console.error('Backend data not available:', error);
+        }
+      } else {
+        console.log('Tauri backend not available');
+      }
+
+      // If no backend data, try localStorage
+      if (subjectCount === 0) {
+        console.log('Trying localStorage for grade data...');
+        
+        subjects.forEach(subject => {
+          console.log(`\nProcessing subject: ${subject}`);
           const gradeData = getDetailedGradeData(subject, quarter, studentName);
           
+          console.log(`Grade data for ${subject}:`, gradeData);
+          
           if (gradeData && gradeData.finalGrade > 0) {
-            totalWW += gradeData.writtenWorks.weighted;
-            totalPT += gradeData.performanceTasks.weighted;
-            totalQA += gradeData.quarterlyAssessment.weighted;
-            totalGrade += gradeData.finalGrade;
+            console.log(`Found valid data for ${subject}:`, gradeData);
+            
+            // Use the raw percentage scores instead of weighted values for display
+            const wwPercentage = gradeData.writtenWorks.percentage;
+            const ptPercentage = gradeData.performanceTasks.percentage;
+            const qaPercentage = gradeData.quarterlyAssessment.percentage;
+            
+            console.log(`Raw grade components for ${subject}:`);
+            console.log(`  - WW Percentage: ${wwPercentage}`);
+            console.log(`  - PT Percentage: ${ptPercentage}`);
+            console.log(`  - QA Percentage: ${qaPercentage}`);
+            console.log(`  - Final Grade: ${gradeData.finalGrade}`);
+            console.log(`  - WW Weighted: ${gradeData.writtenWorks.weighted}`);
+            console.log(`  - PT Weighted: ${gradeData.performanceTasks.weighted}`);
+            console.log(`  - QA Weighted: ${gradeData.quarterlyAssessment.weighted}`);
+            
+            totalWW += wwPercentage;
+            totalPT += ptPercentage;
+            totalQA += qaPercentage;
+            totalGrade += gradeData.finalGrade; // Use the stored final grade
             subjectCount++;
+            
+            console.log(`Running totals after ${subject}:`);
+            console.log(`  - Total WW: ${totalWW}`);
+            console.log(`  - Total PT: ${totalPT}`);
+            console.log(`  - Total QA: ${totalQA}`);
+            console.log(`  - Total Grade: ${totalGrade}`);
+            console.log(`  - Subject Count: ${subjectCount}`);
+            
+            subjectDetails.push({
+              subject: subject,
+              ww: wwPercentage,
+              pt: ptPercentage,
+              qa: qaPercentage,
+              finalGrade: gradeData.finalGrade // Use the stored final grade
+            });
+          } else {
+            console.log(`No valid data found for ${subject} - gradeData:`, gradeData);
+            if (gradeData) {
+              console.log(`  - Final grade value: ${gradeData.finalGrade}`);
+              console.log(`  - Final grade type: ${typeof gradeData.finalGrade}`);
+            }
           }
         });
       }
 
-      // Always show default zeros when no data is found
+      console.log(`\nFinal totals:
+        - Subjects with data: ${subjectCount}
+        - Total WW: ${totalWW}
+        - Total PT: ${totalPT}
+        - Total QA: ${totalQA}
+        - Total Grade: ${totalGrade}
+        - Subject Details:`, subjectDetails);
+
       if (subjectCount === 0) {
+        console.log('No data found, displaying no data state');
         displayNoData();
         showNoDataMessage(true);
+        hideSubjectBreakdown();
       } else {
+        console.log(`\n=== CALCULATING FINAL AVERAGES ===`);
+        console.log(`Before division:`);
+        console.log(`  - Total WW: ${totalWW}, Subject Count: ${subjectCount}`);
+        console.log(`  - Total PT: ${totalPT}, Subject Count: ${subjectCount}`);
+        console.log(`  - Total QA: ${totalQA}, Subject Count: ${subjectCount}`);
+        console.log(`  - Total Grade: ${totalGrade}, Subject Count: ${subjectCount}`);
+        
         const avgWW = (totalWW / subjectCount).toFixed(1);
         const avgPT = (totalPT / subjectCount).toFixed(1);
         const avgQA = (totalQA / subjectCount).toFixed(1);
         const avgGrade = (totalGrade / subjectCount).toFixed(1);
 
+        console.log(`Calculated averages:`);
+        console.log(`  - WW: ${avgWW} (${totalWW} / ${subjectCount})`);
+        console.log(`  - PT: ${avgPT} (${totalPT} / ${subjectCount})`);
+        console.log(`  - QA: ${avgQA} (${totalQA} / ${subjectCount})`);
+        console.log(`  - Grade: ${avgGrade} (${totalGrade} / ${subjectCount})`);
+        
+        console.log(`\n=== COMPARISON WITH MARKINGS PAGE ===`);
+        console.log(`Expected from markings: 29.3`);
+        console.log(`Calculated in analytics: ${avgGrade}`);
+        console.log(`Match: ${avgGrade === '29.3' ? 'YES' : 'NO'}`);
+
         updateStatsCards(avgWW, avgPT, avgQA, avgGrade);
         updateChart(avgWW, avgPT, avgQA);
+        showSubjectBreakdown(subjectDetails);
         showNoDataMessage(false);
       }
-    }
-
-    function getDetailedGradeData(subject, quarter, studentName) {
-      // This would normally fetch from actual storage
-      // For demo, return null to show default zeros
-      return null;
+      
+      console.log('=== PERFORMANCE DATA LOADING COMPLETE ===\n');
     }
 
     function updateStatsCards(ww, pt, qa, grade) {
+      console.log(`\n=== UPDATING STATS CARDS ===`);
+      console.log(`Setting card values:`);
+      console.log(`  - WW Average: ${ww}`);
+      console.log(`  - PT Average: ${pt}`);
+      console.log(`  - QA Average: ${qa}`);
+      console.log(`  - Computed Grade: ${grade}`);
+      
       document.getElementById('wwAverage').textContent = ww;
       document.getElementById('ptAverage').textContent = pt;
       document.getElementById('qaAverage').textContent = qa;
       document.getElementById('computedGrade').textContent = grade;
+      
+      console.log(`Cards updated successfully`);
     }
 
     function updateChart(ww, pt, qa) {
       const ctx = document.getElementById("overallChart").getContext("2d");
       
-      if (window.performanceChart) {
-        window.performanceChart.destroy();
+      if (performanceChart) {
+        performanceChart.destroy();
       }
 
       const hasData = parseFloat(ww) > 0 || parseFloat(pt) > 0 || parseFloat(qa) > 0;
 
       if (hasData) {
-        window.performanceChart = new Chart(ctx, {
+        performanceChart = new Chart(ctx, {
           type: "doughnut",
           data: {
             labels: ["Written Works (30%)", "Performance Tasks (50%)", "Quarterly Assessment (20%)"],
@@ -763,7 +880,7 @@
                 titleFont: { size: 14, family: "Arial" },
                 callbacks: {
                   label: function(context) {
-                    return context.label + ': ' + context.parsed.toFixed(1) + ' points';
+                    return context.label + ': ' + context.parsed.toFixed(1) + '%';
                   }
                 }
               },
@@ -779,7 +896,7 @@
         });
       } else {
         // Show empty state chart
-        window.performanceChart = new Chart(ctx, {
+        performanceChart = new Chart(ctx, {
           type: "doughnut",
           data: {
             labels: ["No Data Available"],
@@ -804,6 +921,59 @@
           }
         });
       }
+    }
+
+    function showSubjectBreakdown(subjectDetails) {
+      console.log(`\n=== SHOWING SUBJECT BREAKDOWN ===`);
+      console.log(`Subject details received:`, subjectDetails);
+      
+      const breakdownDiv = document.getElementById('subjectBreakdown');
+      const subjectGrid = document.getElementById('subjectGrid');
+      
+      subjectGrid.innerHTML = '';
+      
+      subjectDetails.forEach((detail, index) => {
+        console.log(`Creating breakdown card ${index + 1} for ${detail.subject}:`);
+        console.log(`  - WW: ${detail.ww}%`);
+        console.log(`  - PT: ${detail.pt}%`);
+        console.log(`  - QA: ${detail.qa}%`);
+        console.log(`  - Final Grade: ${detail.finalGrade}`);
+        
+        const subjectCard = document.createElement('div');
+        subjectCard.className = 'subject-card';
+        
+        subjectCard.innerHTML = `
+          <h4>${detail.subject}</h4>
+          <div class="grade-components">
+            <div class="component">
+              <div class="component-value">${detail.ww.toFixed(1)}%</div>
+              <div>Written Works</div>
+            </div>
+            <div class="component">
+              <div class="component-value">${detail.pt.toFixed(1)}%</div>
+              <div>Performance Tasks</div>
+            </div>
+            <div class="component">
+              <div class="component-value">${detail.qa.toFixed(1)}%</div>
+              <div>Quarterly Assessment</div>
+            </div>
+          </div>
+          <div class="final-grade">
+            <div class="final-grade-value">${detail.finalGrade.toFixed(1)}</div>
+            <div>Final Grade</div>
+          </div>
+        `;
+        
+        subjectGrid.appendChild(subjectCard);
+        console.log(`Card created and added for ${detail.subject}`);
+      });
+      
+      breakdownDiv.style.display = 'block';
+      console.log(`Subject breakdown displayed with ${subjectDetails.length} subjects`);
+    }
+
+    function hideSubjectBreakdown() {
+      document.getElementById('subjectBreakdown').style.display = 'none';
     }
 
     function displayNoData() {
